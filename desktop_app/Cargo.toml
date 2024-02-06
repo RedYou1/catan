@@ -18,6 +18,5 @@ too-many-lines = "deny"
 todo = "warn"
 
 [dependencies]
+catan_lib = { path = "../lib" }
 macroquad = "=0.4"
-rand = "^0.8.4" #same as shuffle
-shuffle = "=0.1.7"

@@ -1,14 +1,14 @@
 use crate::{
-    building::Building, player::Player, port::Port, position::Pos, ressource::Ressource, tile::Tile,
+    building::Building, player::TPlayer, port::Port, position::Pos, ressource::Ressource, tile::Tile,
 };
-use macroquad::color::Color;
+
 use rand::rngs::mock::StepRng;
 use rand::Rng;
 use shuffle::irs::Irs;
 use shuffle::shuffler::Shuffler;
 
 #[derive(Debug)]
-pub struct Game<const PLAYERS_COUNT: usize> {
+pub struct Game<Player: TPlayer, const PLAYERS_COUNT: usize> {
     max_ressource: u8,
     players: [Player; PLAYERS_COUNT],
     map: [[Option<Tile>; 5]; 5],
@@ -17,7 +17,7 @@ pub struct Game<const PLAYERS_COUNT: usize> {
     to_play: usize,
 }
 
-impl<const PLAYERS_COUNT: usize> Default for Game<PLAYERS_COUNT> {
+impl<Player: TPlayer + Default + Copy, const PLAYERS_COUNT: usize> Default for Game<Player, PLAYERS_COUNT> {
     fn default() -> Self {
         Self {
             max_ressource: 0,
@@ -30,10 +30,10 @@ impl<const PLAYERS_COUNT: usize> Default for Game<PLAYERS_COUNT> {
     }
 }
 
-impl<const PLAYERS_COUNT: usize> Game<PLAYERS_COUNT> {
+impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
     pub fn new(
         max_ressource: u8,
-        player_names: [(&'static str, Color); PLAYERS_COUNT],
+        players: [Player; PLAYERS_COUNT],
     ) -> Option<Self> {
         let mut dices = vec![2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
         let mut rng = StepRng::new(2, 13);
@@ -79,7 +79,7 @@ impl<const PLAYERS_COUNT: usize> Game<PLAYERS_COUNT> {
 
         Some(Self {
             max_ressource,
-            players: player_names.map(|(name, color)| Player::new(name, color)),
+            players,
             map: [
                 [None, tiles[0], tiles[1], tiles[2], None],
                 [tiles[3], tiles[4], tiles[5], tiles[6], None],

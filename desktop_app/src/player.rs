@@ -1,12 +1,22 @@
+use catan_lib::player::TPlayer;
+use catan_lib::ressource_manager::RessourceManager;
 use macroquad::color::Color;
-
-use crate::ressource_manager::RessourceManager;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Player {
     name: &'static str,
     color: Color,
     ressources: RessourceManager,
+}
+
+impl TPlayer for Player {
+    fn ressources(&self) -> &RessourceManager {
+        &self.ressources
+    }
+
+    fn ressources_mut(&mut self) -> &mut RessourceManager {
+        &mut self.ressources
+    }
 }
 
 impl Player {
@@ -24,13 +34,5 @@ impl Player {
 
     pub const fn color(&self) -> Color {
         self.color
-    }
-
-    pub const fn ressources(&self) -> &RessourceManager {
-        &self.ressources
-    }
-
-    pub fn ressources_mut(&mut self) -> &mut RessourceManager {
-        &mut self.ressources
     }
 }

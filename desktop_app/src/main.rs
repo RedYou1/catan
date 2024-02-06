@@ -1,21 +1,16 @@
 #![feature(const_trait_impl, effects)]
 
-use crate::game_manager::Game;
-use crate::ressource::Ressource;
-use building::Building;
+use catan_lib::building::Building;
+use catan_lib::game_manager::Game;
+use catan_lib::player::TPlayer;
+use catan_lib::ressource::Ressource;
+use catan_lib::ressource_manager::RessourceManager;
+use catan_lib::tile::Tile;
 use macroquad::prelude::*;
 use macroquad::ui::root_ui;
-use ressource_manager::RessourceManager;
-use tile::Tile;
+use player::Player;
 
-mod building;
-mod game_manager;
 mod player;
-mod port;
-mod position;
-mod ressource;
-mod ressource_manager;
-mod tile;
 
 const HEX_SIZE: f32 = 50.0;
 
@@ -115,7 +110,7 @@ fn draw_tile(x: usize, y: usize, starty: f32, tile: Option<Tile>) {
     }
 }
 
-fn draw_building(x: usize, y: usize, starty: f32, game: &mut Game<4>) {
+fn draw_building(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>) {
     let px = f32::from(i16::try_from(x).expect("number try_from") - 5);
     let py = f32::from(i16::try_from(y).expect("number try_from"));
     let isoff = f32::from(x % 2 == y % 2);
@@ -192,16 +187,24 @@ async fn main() {
     let mut game = Game::new(
         7,
         [
-            ("Blue", BLUE),
-            ("Red", RED),
-            ("Green", GREEN),
-            ("Yellow", YELLOW),
+            Player::new("Blue", BLUE),
+            Player::new("Red", RED),
+            Player::new("Green", GREEN),
+            Player::new("Yellow", YELLOW),
         ],
     )
     .expect("Couldn't create the game");
     let mut page = Page::Main;
     let mut to_reduce = RessourceManager::default();
     let mut dices: Option<(u8, u8)> = None;
+    for player in game.players_mut() {
+        let ressources = player.ressources_mut();
+        ressources.add(Ressource::Tree, 50);
+        ressources.add(Ressource::Wheet, 50);
+        ressources.add(Ressource::Brick, 50);
+        ressources.add(Ressource::Sheep, 50);
+        ressources.add(Ressource::Stone, 50);
+    }
     loop {
         clear_background(DARKGRAY);
 
@@ -215,7 +218,7 @@ async fn main() {
 }
 
 fn main_page(
-    game: &mut Game<4>,
+    game: &mut Game<Player, 4>,
     page: &mut Page,
     to_reduce: &mut RessourceManager,
     dice_played: &mut Option<(u8, u8)>,
@@ -306,7 +309,7 @@ fn main_page(
     }
 }
 
-fn reduce_page(game: &mut Game<4>, page: &mut Page, to_reduce: &mut RessourceManager) {
+fn reduce_page(game: &mut Game<Player, 4>, page: &mut Page, to_reduce: &mut RessourceManager) {
     let max_amount = game.max_ressource();
     let Some(player) = game
         .players_mut()
