@@ -1,6 +1,7 @@
 use crate::{
     building::Building, player::Player, port::Port, position::Pos, ressource::Ressource, tile::Tile,
 };
+use macroquad::color::Color;
 use rand::rngs::mock::StepRng;
 use rand::Rng;
 use shuffle::irs::Irs;
@@ -12,7 +13,7 @@ pub struct Game<const PLAYERS_COUNT: usize> {
     players: [Player; PLAYERS_COUNT],
     map: [[Option<Tile>; 5]; 5],
     ports: [Port; 9],
-    building: [[Option<(Building, usize)>; 11]; 12],
+    building: [[Option<(Building, usize)>; 11]; 6],
     to_play: usize,
 }
 
@@ -23,14 +24,17 @@ impl<const PLAYERS_COUNT: usize> Default for Game<PLAYERS_COUNT> {
             players: [Player::default(); PLAYERS_COUNT],
             map: [[None; 5]; 5],
             ports: [Port::default(); 9],
-            building: [[None; 11]; 12],
+            building: [[None; 11]; 6],
             to_play: 0,
         }
     }
 }
 
 impl<const PLAYERS_COUNT: usize> Game<PLAYERS_COUNT> {
-    pub fn new(max_ressource: u8, player_names: [&'static str; PLAYERS_COUNT]) -> Option<Self> {
+    pub fn new(
+        max_ressource: u8,
+        player_names: [(&'static str, Color); PLAYERS_COUNT],
+    ) -> Option<Self> {
         let mut dices = vec![2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
         let mut rng = StepRng::new(2, 13);
         Irs::default().shuffle(&mut dices, &mut rng).ok()?;
@@ -75,7 +79,7 @@ impl<const PLAYERS_COUNT: usize> Game<PLAYERS_COUNT> {
 
         Some(Self {
             max_ressource,
-            players: player_names.map(Player::new),
+            players: player_names.map(|(name, color)| Player::new(name, color)),
             map: [
                 [None, tiles[0], tiles[1], tiles[2], None],
                 [tiles[3], tiles[4], tiles[5], tiles[6], None],
@@ -86,15 +90,15 @@ impl<const PLAYERS_COUNT: usize> Game<PLAYERS_COUNT> {
             ports: [
                 Port::new(ports[0], Pos::new(2, 0), Pos::new(3, 0)),
                 Port::new(ports[1], Pos::new(5, 0), Pos::new(6, 0)),
-                Port::new(ports[2], Pos::new(8, 1), Pos::new(9, 2)),
-                Port::new(ports[3], Pos::new(0, 2), Pos::new(0, 3)),
-                Port::new(ports[4], Pos::new(10, 5), Pos::new(10, 6)),
-                Port::new(ports[5], Pos::new(1, 7), Pos::new(1, 8)),
-                Port::new(ports[6], Pos::new(9, 8), Pos::new(8, 9)),
-                Port::new(ports[7], Pos::new(2, 10), Pos::new(3, 11)),
-                Port::new(ports[8], Pos::new(5, 11), Pos::new(6, 10)),
+                Port::new(ports[2], Pos::new(8, 1), Pos::new(9, 1)),
+                Port::new(ports[3], Pos::new(0, 1), Pos::new(0, 2)),
+                Port::new(ports[4], Pos::new(10, 2), Pos::new(10, 3)),
+                Port::new(ports[5], Pos::new(1, 3), Pos::new(1, 4)),
+                Port::new(ports[6], Pos::new(9, 4), Pos::new(8, 4)),
+                Port::new(ports[7], Pos::new(2, 5), Pos::new(3, 5)),
+                Port::new(ports[8], Pos::new(5, 5), Pos::new(6, 5)),
             ],
-            building: [[None; 11]; 12],
+            building: [[None; 11]; 6],
             to_play: 0,
         })
     }
@@ -120,8 +124,8 @@ impl<const PLAYERS_COUNT: usize> Game<PLAYERS_COUNT> {
                 }
 
                 for by in y..=y + 1 {
-                    for bx in x..=x + 2 {
-                        let Some(building) = self.building[by][bx] else {
+                    for bx in x * 2..=(x + 1) * 2 {
+                        let Some(building) = self.building[by][bx + (y % 2)] else {
                             continue;
                         };
 
@@ -148,6 +152,10 @@ impl<const PLAYERS_COUNT: usize> Game<PLAYERS_COUNT> {
         self.max_ressource
     }
 
+    pub const fn current_player_id(&self) -> usize {
+        self.to_play
+    }
+
     pub const fn current_player(&self) -> &Player {
         &self.players[self.to_play]
     }
@@ -163,6 +171,10 @@ impl<const PLAYERS_COUNT: usize> Game<PLAYERS_COUNT> {
         }
     }
 
+    pub const fn player(&self, id: usize) -> &Player {
+        &self.players[id]
+    }
+
     pub fn players(&self) -> &[Player] {
         self.players.as_ref()
     }
@@ -171,21 +183,23 @@ impl<const PLAYERS_COUNT: usize> Game<PLAYERS_COUNT> {
         self.players.as_mut()
     }
 
-    pub fn try_place(
-        &mut self,
-        x: usize,
-        y: usize,
-        building: Building,
-        player: usize,
-    ) -> Option<()> {
+    pub fn try_place(&mut self, x: usize, y: usize, building: Building, player: usize) -> bool {
         let place = &mut self.building[y][x];
         match place {
-            Some(_) => Some(()),
+            Some(_) => false,
             None => {
                 *place = Some((building, player));
-                None
+                true
             }
         }
+    }
+
+    pub fn buildings(&self) -> &[[Option<(Building, usize)>; 11]] {
+        self.building.as_ref()
+    }
+
+    pub fn buildings_mut(&mut self) -> &mut [[Option<(Building, usize)>; 11]] {
+        self.building.as_mut()
     }
 
     pub const fn tiles(&self) -> &[[Option<Tile>; 5]; 5] {

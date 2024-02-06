@@ -2,6 +2,7 @@
 
 use crate::game_manager::Game;
 use crate::ressource::Ressource;
+use building::Building;
 use macroquad::prelude::*;
 use macroquad::ui::root_ui;
 use ressource_manager::RessourceManager;
@@ -30,6 +31,7 @@ fn draw_texts_vertical(
     texts: &[String],
     centerx: f32,
     mut starty: f32,
+    space: f32,
     font: u16,
     color: Color,
 ) -> f32 {
@@ -39,6 +41,8 @@ fn draw_texts_vertical(
         starty -= center.y * 2.0;
 
         draw_text(text, centerx - center.x, starty, f32::from(font), color);
+
+        starty += space;
     }
     starty
 }
@@ -74,7 +78,7 @@ fn draw_tile(x: usize, y: usize, starty: f32, tile: Option<Tile>) {
         YELLOW
     };
 
-    let px = f32::from(i16::try_from(x).expect("number try_from") - 3);
+    let px = f32::from(i16::try_from(x).expect("number try_from")) - 2.0;
     let py = f32::from(i16::try_from(y).expect("number try_from"));
     let isoff = f32::from(u8::try_from(y % 2).expect("number try_from")) / 2.0;
 
@@ -94,15 +98,66 @@ fn draw_tile(x: usize, y: usize, starty: f32, tile: Option<Tile>) {
                 tile.dice_id().to_string(),
                 str::repeat(
                     "*",
-                    usize::try_from((7 - i32::from(tile.dice_id())).abs())
+                    usize::try_from(6 - (7 - i32::from(tile.dice_id())).abs())
                         .expect("number try_from"),
                 ),
             ],
             screen_width() / 2.0 + 1.8 * HEX_SIZE * (px + isoff),
             starty + HEX_SIZE * 2.0 + 1.54 * HEX_SIZE * py - HEX_SIZE / 4.0,
+            5.0,
             25,
-            BLACK,
+            if tile.dice_id() == 6 || tile.dice_id() == 8 {
+                DARKBLUE
+            } else {
+                BLACK
+            },
         );
+    }
+}
+
+fn draw_building(x: usize, y: usize, starty: f32, game: &mut Game<4>) {
+    let px = f32::from(i16::try_from(x).expect("number try_from") - 5);
+    let py = f32::from(i16::try_from(y).expect("number try_from"));
+    let isoff = f32::from(x % 2 == y % 2);
+
+    if let Some((_, player_id)) = game.buildings()[y][x] {
+        draw_rectangle(
+            screen_width() / 2.0 + 1.8 * HEX_SIZE * px / 2.0 - 5.0,
+            starty + HEX_SIZE * 1.0 + 1.54 * HEX_SIZE * py + 0.5 * HEX_SIZE * isoff - 10.0,
+            10.0,
+            20.0,
+            game.player(player_id).color(),
+        );
+    } else {
+        let ressource = game.current_player().ressources();
+        if ressource.get(Ressource::Tree) > 0
+            && ressource.get(Ressource::Wheet) > 0
+            && ressource.get(Ressource::Brick) > 0
+            && ressource.get(Ressource::Sheep) > 0
+        {
+            draw_rectangle(
+                screen_width() / 2.0 + 1.8 * HEX_SIZE * px / 2.0 - 7.5,
+                starty + HEX_SIZE * 1.0 + 1.54 * HEX_SIZE * py + 0.5 * HEX_SIZE * isoff - 12.5,
+                15.0,
+                25.0,
+                BLACK,
+            );
+            if root_ui().button(
+                Vec2 {
+                    x: screen_width() / 2.0 + 1.8 * HEX_SIZE * px / 2.0 - 5.5,
+                    y: starty + HEX_SIZE * 1.0 + 1.54 * HEX_SIZE * py + 0.5 * HEX_SIZE * isoff
+                        - 10.0,
+                },
+                " ",
+            ) && game.try_place(x, y, Building::LittleHouse, game.current_player_id())
+            {
+                let ressource = game.current_player_mut().ressources_mut();
+                ressource.sub(Ressource::Tree, 1);
+                ressource.sub(Ressource::Wheet, 1);
+                ressource.sub(Ressource::Brick, 1);
+                ressource.sub(Ressource::Sheep, 1);
+            }
+        }
     }
 }
 
@@ -116,8 +171,16 @@ enum Page {
 #[macroquad::main(configure_window)]
 async fn main() {
     #[deny(clippy::needless_pass_by_value)]
-    let mut game =
-        Game::new(7, ["Blue", "Red", "Green", "Yellow"]).expect("Couldn't create the game");
+    let mut game = Game::new(
+        7,
+        [
+            ("Blue", BLUE),
+            ("Red", RED),
+            ("Green", GREEN),
+            ("Yellow", YELLOW),
+        ],
+    )
+    .expect("Couldn't create the game");
     let mut page = Page::Main;
     let mut to_reduce = RessourceManager::default();
     let mut dices: Option<(u8, u8)> = None;
@@ -143,6 +206,7 @@ fn main_page(
         &[format!("Player to play: {}", game.current_player().name())],
         screen_width() / 2.0,
         0.0,
+        5.0,
         25,
         WHITE,
     );
@@ -160,9 +224,11 @@ fn main_page(
             .collect::<Vec<String>>(),
         screen_width() / 2.0,
         new_y,
+        5.0,
         20,
         WHITE,
     );
+    new_y -= 30.0;
 
     for (y, row) in game.tiles().iter().enumerate() {
         for (x, tile) in row.iter().enumerate() {
@@ -173,6 +239,18 @@ fn main_page(
                 continue;
             }
             draw_tile(x, y, new_y, *tile);
+        }
+    }
+
+    for y in 0..6 {
+        for x in 0..11 {
+            if (y == 0 || y == 5) && (x <= 1 || x >= 9) {
+                continue;
+            }
+            if (y == 1 || y == 4) && (x == 0 || x == 10) {
+                continue;
+            }
+            draw_building(x, y, new_y, game);
         }
     }
 
@@ -225,6 +303,7 @@ fn reduce_page(game: &mut Game<4>, page: &mut Page, to_reduce: &mut RessourceMan
         &[format!("Player to reduce {}", player.name())],
         screen_width() / 2.0,
         100.0,
+        5.0,
         25,
         WHITE,
     );
