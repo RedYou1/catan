@@ -1,6 +1,6 @@
 use catan_lib::player::TPlayer;
 use catan_lib::ressource_manager::RessourceManager;
-use macroquad::color::Color;
+use macroquad::prelude::*;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Player {
