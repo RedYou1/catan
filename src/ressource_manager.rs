@@ -24,6 +24,14 @@ impl RessourceManager {
         }
     }
 
+    pub const fn can_buy(self, trees: u8, wheets: u8, bricks: u8, sheeps: u8, stone: u8) -> bool {
+        self.trees >= trees
+            && self.wheets >= wheets
+            && self.bricks >= bricks
+            && self.sheeps >= sheeps
+            && self.stone >= stone
+    }
+
     pub fn add(&mut self, ressource: Ressource, amount: u8) {
         match ressource {
             Ressource::Tree => self.trees += amount,
@@ -50,5 +58,13 @@ impl RessourceManager {
         self.bricks -= ressources.bricks;
         self.sheeps -= ressources.sheeps;
         self.stone -= ressources.stone;
+    }
+
+    pub fn buy(&mut self, trees: u8, wheets: u8, bricks: u8, sheeps: u8, stone: u8) {
+        self.trees -= trees;
+        self.wheets -= wheets;
+        self.bricks -= bricks;
+        self.sheeps -= sheeps;
+        self.stone -= stone;
     }
 }

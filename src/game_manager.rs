@@ -183,23 +183,12 @@ impl<const PLAYERS_COUNT: usize> Game<PLAYERS_COUNT> {
         self.players.as_mut()
     }
 
-    pub fn try_place(&mut self, x: usize, y: usize, building: Building, player: usize) -> bool {
-        let place = &mut self.building[y][x];
-        match place {
-            Some(_) => false,
-            None => {
-                *place = Some((building, player));
-                true
-            }
-        }
+    pub const fn building(&self, x: usize, y: usize) -> Option<&(Building, usize)> {
+        self.building[y][x].as_ref()
     }
 
-    pub fn buildings(&self) -> &[[Option<(Building, usize)>; 11]] {
-        self.building.as_ref()
-    }
-
-    pub fn buildings_mut(&mut self) -> &mut [[Option<(Building, usize)>; 11]] {
-        self.building.as_mut()
+    pub fn building_mut(&mut self, x: usize, y: usize) -> &mut Option<(Building, usize)> {
+        &mut self.building[y][x]
     }
 
     pub const fn tiles(&self) -> &[[Option<Tile>; 5]; 5] {
