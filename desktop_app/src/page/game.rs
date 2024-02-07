@@ -9,7 +9,7 @@ use crate::{
         tile,
     },
     player::Player,
-    Page,
+    Page, Starting,
 };
 
 pub fn game(
@@ -17,9 +17,11 @@ pub fn game(
     page: &mut Page,
     to_reduce: &mut RessourceManager,
     dice_played: &mut Option<(u8, u8)>,
+    debut: &mut Starting,
 ) {
+    let current_player = game.current_player();
     let mut new_y = texts_vertical(
-        &[format!("Player to play: {}", game.current_player().name())],
+        &[format!("Player to play: {}", current_player.name())],
         screen_width() / 2.0,
         0.0,
         5.0,
@@ -47,9 +49,12 @@ pub fn game(
     new_y -= 30.0;
 
     draw_tiles(new_y, game);
-    draw_roads(new_y, game);
-    draw_buildings(new_y, game);
+    draw_roads(new_y, game, debut);
+    draw_buildings(new_y, game, debut);
 
+    if debut.is_starting() {
+        return;
+    }
     if let Some((a, b)) = *dice_played {
         draw_text(
             format!("{a} {b}").as_str(),
@@ -98,7 +103,7 @@ pub fn draw_tiles(new_y: f32, game: &Game<Player, 4>) {
     }
 }
 
-pub fn draw_buildings(new_y: f32, game: &mut Game<Player, 4>) {
+pub fn draw_buildings(new_y: f32, game: &mut Game<Player, 4>, debut: &mut Starting) {
     for y in 0..6 {
         for x in 0..11 {
             if (y == 0 || y == 5) && (x <= 1 || x >= 9) {
@@ -107,12 +112,12 @@ pub fn draw_buildings(new_y: f32, game: &mut Game<Player, 4>) {
             if (y == 1 || y == 4) && (x == 0 || x == 10) {
                 continue;
             }
-            building(x, y, new_y, game, false, false);
+            building(x, y, new_y, game, debut);
         }
     }
 }
 
-pub fn draw_roads(new_y: f32, game: &mut Game<Player, 4>) {
+pub fn draw_roads(new_y: f32, game: &mut Game<Player, 4>, debut: &mut Starting) {
     for y in 0..5 {
         for x in 0..6 {
             if (y == 0 || y == 4) && (x == 0 || x == 5) {
@@ -121,7 +126,7 @@ pub fn draw_roads(new_y: f32, game: &mut Game<Player, 4>) {
             if (y == 1 || y == 3) && x == 5 {
                 continue;
             }
-            vroad(x, y, new_y, game, false, false);
+            vroad(x, y, new_y, game, debut);
         }
     }
 
@@ -133,7 +138,7 @@ pub fn draw_roads(new_y: f32, game: &mut Game<Player, 4>) {
             if (y == 1 || y == 4) && (x == 0 || x == 9) {
                 continue;
             }
-            hroad(x, y, new_y, game, false, false);
+            hroad(x, y, new_y, game, debut);
         }
     }
 }

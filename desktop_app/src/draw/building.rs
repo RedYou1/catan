@@ -1,7 +1,11 @@
-use catan_lib::{building::Building, game_manager::Game, player::TPlayer};
+use catan_lib::{
+    building::Building,
+    game_manager::{self, Game},
+    player::TPlayer,
+};
 use macroquad::{prelude::*, ui::root_ui};
 
-use crate::{player::Player, HEX_SIZE};
+use crate::{player::Player, Starting, HEX_SIZE};
 
 pub fn coords(x: usize, y: usize, starty: f32) -> (f32, f32) {
     let px = f32::from(i16::try_from(x).expect("number try_from") - 5);
@@ -13,14 +17,7 @@ pub fn coords(x: usize, y: usize, starty: f32) -> (f32, f32) {
     )
 }
 
-pub fn building(
-    x: usize,
-    y: usize,
-    starty: f32,
-    game: &mut Game<Player, 4>,
-    free: bool,
-    anywhere: bool,
-) {
+pub fn building(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, debut: &mut Starting) {
     let current_playing = game.current_player_id();
     let (center_x, center_y) = coords(x, y, starty);
 
@@ -42,19 +39,7 @@ pub fn building(
                 return;
             }
             let ressource = game.current_player().ressources();
-            if !free && !ressource.can_buy(0, 2, 0, 0, 3) {
-                return;
-            }
-            if !(anywhere
-                || game.hroad_near_building(x, y).iter().any(|(x1, y1)| {
-                    game.hroad(*x1, *y1)
-                        .map_or(false, |a| *a == current_playing)
-                })
-                || game.vroad_near_building(x, y).iter().any(|(x1, y1)| {
-                    game.vroad(*x1, *y1)
-                        .map_or(false, |a| *a == current_playing)
-                }))
-            {
+            if !ressource.can_buy(0, 2, 0, 0, 3) {
                 return;
             }
             if !root_ui().button(
@@ -67,27 +52,33 @@ pub fn building(
                 return;
             }
             *game.building_mut(x, y) = Some((Building::BigHouse, *player_id));
-            if !free {
-                game.current_player_mut()
-                    .ressources_mut()
-                    .buy(0, 2, 0, 0, 3);
-            }
+            game.current_player_mut()
+                .ressources_mut()
+                .buy(0, 2, 0, 0, 3);
         }
         None => {
             let ressource = game.current_player().ressources();
-            if !free && !ressource.can_buy(1, 1, 1, 1, 0) {
+            if !debut.building_turn() && !ressource.can_buy(1, 1, 1, 1, 0) {
                 return;
             }
-            if !(anywhere
-                || game.hroad_near_building(x, y).iter().any(|(x1, y1)| {
-                    game.hroad(*x1, *y1)
-                        .map_or(false, |a| *a == current_playing)
-                })
-                || game.vroad_near_building(x, y).iter().any(|(x1, y1)| {
-                    game.vroad(*x1, *y1)
-                        .map_or(false, |a| *a == current_playing)
-                }))
+            if game.building_in_range(x, y)
+                || !(debut.building_turn()
+                    || game_manager::hroad_near_building(x, y)
+                        .iter()
+                        .any(|(x1, y1)| {
+                            game.hroad(*x1, *y1)
+                                .map_or(false, |a| *a == current_playing)
+                        })
+                    || game_manager::vroad_near_building(x, y)
+                        .iter()
+                        .any(|(x1, y1)| {
+                            game.vroad(*x1, *y1)
+                                .map_or(false, |a| *a == current_playing)
+                        }))
             {
+                return;
+            }
+            if game.building_in_range(x, y) {
                 return;
             }
             draw_rectangle(center_x - 7.5, center_y - 12.5, 15.0, 25.0, BLACK);
@@ -101,7 +92,9 @@ pub fn building(
                 return;
             }
             *game.building_mut(x, y) = Some((Building::LittleHouse, game.current_player_id()));
-            if !free {
+            if debut.building_turn() {
+                debut.place_building(x, y);
+            } else {
                 game.current_player_mut()
                     .ressources_mut()
                     .buy(1, 1, 1, 1, 0);

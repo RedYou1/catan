@@ -173,6 +173,13 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
             self.to_play = 0;
         }
     }
+    pub fn prev_player(&mut self) {
+        if self.to_play == 0 {
+            self.to_play = PLAYERS_COUNT - 1;
+        } else {
+            self.to_play -= 1;
+        }
+    }
 
     pub const fn player(&self, id: usize) -> &Player {
         &self.players[id]
@@ -236,23 +243,23 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
             if !remain_hroad.is_empty() {
                 let (x, y) = remain_hroad
                     .pop()
-                    .expect("Empty array in Game::update_longuest_road");
+                    .expect("Empty array in update_longuest_road");
                 remain_hroad.extend(
-                    self.hroad_near_hroad(x, y)
+                    hroad_near_hroad(x, y)
                         .iter()
                         .filter(|a| self.hroad[a.1][a.0].map_or(false, |p| p == player_id)),
                 );
                 remain_vroad.extend(
-                    self.vroad_near_hroad(x, y)
+                    vroad_near_hroad(x, y)
                         .iter()
                         .filter(|a| self.vroad[a.1][a.0].map_or(false, |p| p == player_id)),
                 );
             } else if !remain_vroad.is_empty() {
                 let (x, y) = remain_vroad
                     .pop()
-                    .expect("Empty array in Game::update_longuest_road");
+                    .expect("Empty array in update_longuest_road");
                 remain_hroad.extend(
-                    self.hroad_near_vroad(x, y)
+                    hroad_near_vroad(x, y)
                         .iter()
                         .filter(|a| self.hroad[a.1][a.0].map_or(false, |p| p == player_id)),
                 );
@@ -268,56 +275,72 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
         }
     }
 
-    pub fn hroad_near_vroad(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
-        let buildings = self.building_near_vroad(x, y);
-        let mut hroads_1 = self.hroad_near_building(buildings[0].0, buildings[0].1);
-        hroads_1.extend(self.hroad_near_building(buildings[1].0, buildings[1].1));
-        hroads_1
+    pub fn building_in_range(&self, x: usize, y: usize) -> bool {
+        building_near_building(x, y)
+            .iter()
+            .any(|(x, y)| self.building[*y][*x].is_some())
     }
-    pub fn vroad_near_hroad(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
-        let buildings = self.building_near_hroad(x, y);
-        let mut res = Vec::with_capacity(2);
-        if let Some(vroad) = self.vroad_near_building(buildings[0].0, buildings[0].1) {
-            res.push(vroad);
-        }
-        if let Some(vroad) = self.vroad_near_building(buildings[1].0, buildings[1].1) {
-            res.push(vroad);
-        }
-        res
+}
+
+pub fn building_near_building(x: usize, y: usize) -> Vec<(usize, usize)> {
+    let mut buildings: Vec<(usize, usize)> = hroad_near_building(x, y)
+        .iter()
+        .flat_map(|(x, y)| building_near_hroad(*x, *y))
+        .collect();
+    if let Some((x, y)) = vroad_near_building(x, y) {
+        buildings.extend(building_near_vroad(x, y));
     }
-    pub fn hroad_near_hroad(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
-        if x == 0 {
-            vec![(1, y)]
-        } else if x == 9 {
-            vec![(8, y)]
-        } else {
-            vec![(x - 1, y), (x + 1, y)]
-        }
+    buildings
+}
+pub fn hroad_near_vroad(x: usize, y: usize) -> Vec<(usize, usize)> {
+    let buildings = building_near_vroad(x, y);
+    let mut hroads_1 = hroad_near_building(buildings[0].0, buildings[0].1);
+    hroads_1.extend(hroad_near_building(buildings[1].0, buildings[1].1));
+    hroads_1
+}
+pub fn vroad_near_hroad(x: usize, y: usize) -> Vec<(usize, usize)> {
+    let buildings = building_near_hroad(x, y);
+    let mut res = Vec::with_capacity(2);
+    if let Some(vroad) = vroad_near_building(buildings[0].0, buildings[0].1) {
+        res.push(vroad);
     }
-    pub fn building_near_vroad(&self, x: usize, y: usize) -> [(usize, usize); 2] {
-        let off = y % 2;
-        [(x * 2 + off, y), (x * 2 + off, y + 1)]
+    if let Some(vroad) = vroad_near_building(buildings[1].0, buildings[1].1) {
+        res.push(vroad);
     }
-    pub fn vroad_near_building(&self, x: usize, y: usize) -> Option<(usize, usize)> {
-        let off = if x % 2 == y % 2 { 0 } else { 1 };
-        if y == 0 && off == 1 {
-            return None;
-        }
-        if y == 5 && off == 0 {
-            return None;
-        }
-        Some((x / 2, y - off))
+    res
+}
+pub fn hroad_near_hroad(x: usize, y: usize) -> Vec<(usize, usize)> {
+    if x == 0 {
+        vec![(1, y)]
+    } else if x == 9 {
+        vec![(8, y)]
+    } else {
+        vec![(x - 1, y), (x + 1, y)]
     }
-    pub fn building_near_hroad(&self, x: usize, y: usize) -> [(usize, usize); 2] {
-        [(x, y), (x + 1, y)]
+}
+pub fn building_near_vroad(x: usize, y: usize) -> [(usize, usize); 2] {
+    let off = y % 2;
+    [(x * 2 + off, y), (x * 2 + off, y + 1)]
+}
+pub fn vroad_near_building(x: usize, y: usize) -> Option<(usize, usize)> {
+    let off = if x % 2 == y % 2 { 0 } else { 1 };
+    if y == 0 && off == 1 {
+        return None;
     }
-    pub fn hroad_near_building(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
-        if x == 0 {
-            vec![(0, y)]
-        } else if x == 10 {
-            vec![(9, y)]
-        } else {
-            vec![(x - 1, y), (x, y)]
-        }
+    if y == 5 && off == 0 {
+        return None;
+    }
+    Some((x / 2, y - off))
+}
+pub fn building_near_hroad(x: usize, y: usize) -> [(usize, usize); 2] {
+    [(x, y), (x + 1, y)]
+}
+pub fn hroad_near_building(x: usize, y: usize) -> Vec<(usize, usize)> {
+    if x == 0 {
+        vec![(0, y)]
+    } else if x == 10 {
+        vec![(9, y)]
+    } else {
+        vec![(x - 1, y), (x, y)]
     }
 }
