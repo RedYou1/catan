@@ -18,5 +18,4 @@ too-many-lines = "deny"
 todo = "warn"
 
 [dependencies]
-rand = "^0.8.4" #same as shuffle
-shuffle = "=0.1.7"
+rand = "=0.8.5"

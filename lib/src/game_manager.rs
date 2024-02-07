@@ -1,11 +1,10 @@
 use crate::{
-    building::Building, player::TPlayer, port::Port, position::Pos, ressource::Ressource, tile::Tile,
+    building::Building, player::TPlayer, port::Port, position::Pos, ressource::Ressource,
+    tile::Tile,
 };
 
-use rand::rngs::mock::StepRng;
+use rand::seq::SliceRandom;
 use rand::Rng;
-use shuffle::irs::Irs;
-use shuffle::shuffler::Shuffler;
 
 #[derive(Debug)]
 pub struct Game<Player: TPlayer, const PLAYERS_COUNT: usize> {
@@ -17,7 +16,9 @@ pub struct Game<Player: TPlayer, const PLAYERS_COUNT: usize> {
     to_play: usize,
 }
 
-impl<Player: TPlayer + Default + Copy, const PLAYERS_COUNT: usize> Default for Game<Player, PLAYERS_COUNT> {
+impl<Player: TPlayer + Default + Copy, const PLAYERS_COUNT: usize> Default
+    for Game<Player, PLAYERS_COUNT>
+{
     fn default() -> Self {
         Self {
             max_ressource: 0,
@@ -31,15 +32,12 @@ impl<Player: TPlayer + Default + Copy, const PLAYERS_COUNT: usize> Default for G
 }
 
 impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
-    pub fn new(
-        max_ressource: u8,
-        players: [Player; PLAYERS_COUNT],
-    ) -> Option<Self> {
-        let mut dices = vec![2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
-        let mut rng = StepRng::new(2, 13);
-        Irs::default().shuffle(&mut dices, &mut rng).ok()?;
+    pub fn new(max_ressource: u8, players: [Player; PLAYERS_COUNT]) -> Option<Self> {
+        let mut dices = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
+        let mut rng = rand::thread_rng();
+        dices.shuffle(&mut rng);
 
-        let mut tiles = vec![
+        let mut tiles = [
             Some(Tile::new(Ressource::Tree, dices[0])),
             Some(Tile::new(Ressource::Tree, dices[1])),
             Some(Tile::new(Ressource::Tree, dices[2])),
@@ -60,10 +58,9 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
             Some(Tile::new(Ressource::Stone, dices[17])),
             None,
         ];
-        let mut rng = StepRng::new(2, 13);
-        Irs::default().shuffle(&mut tiles, &mut rng).ok()?;
+        tiles.shuffle(&mut rng);
 
-        let mut ports = vec![
+        let mut ports = [
             Some(Ressource::Tree),
             Some(Ressource::Wheet),
             Some(Ressource::Brick),
@@ -74,8 +71,7 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
             None,
             None,
         ];
-        let mut rng = StepRng::new(2, 13);
-        Irs::default().shuffle(&mut ports, &mut rng).ok()?;
+        ports.shuffle(&mut rng);
 
         Some(Self {
             max_ressource,
@@ -99,13 +95,14 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
                 Port::new(ports[8], Pos::new(5, 5), Pos::new(6, 5)),
             ],
             building: [[None; 11]; 6],
-            to_play: 0,
+            to_play: rng.gen_range(0..PLAYERS_COUNT),
         })
     }
 
     pub fn throw_dice(&mut self) -> (u8, u8) {
-        let dice_1: u8 = rand::thread_rng().gen_range(1..=6);
-        let dice_2: u8 = rand::thread_rng().gen_range(1..=6);
+        let mut rng = rand::thread_rng();
+        let dice_1: u8 = rng.gen_range(1..=6);
+        let dice_2: u8 = rng.gen_range(1..=6);
         let dice = dice_1 + dice_2;
         if dice == 7 {
             return (dice_1, dice_2);
