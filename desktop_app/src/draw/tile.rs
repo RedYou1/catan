@@ -70,7 +70,7 @@ pub fn tile(x: u8, y: u8, starty: f32, game: &mut Game<Player, 4>, state: &mut S
             " ",
         )
     {
-        state.thief = Thief::Done;
+        state.thief = Thief::Choosing;
         *game.thief_mut() = (x, y);
     }
 }

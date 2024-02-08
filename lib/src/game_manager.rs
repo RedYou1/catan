@@ -158,20 +158,18 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
                     continue;
                 }
 
-                for by in y..=y + 1 {
-                    for bx in x * 2..=(x + 1) * 2 {
-                        let Some(building) = self.building[by][bx + (y % 2)] else {
-                            continue;
-                        };
+                for (bx, by) in building_around_tile(x as u8, y as u8) {
+                    let Some(building) = self.building[by as usize][bx as usize] else {
+                        continue;
+                    };
 
-                        self.players[building.1 as usize].ressources_mut().add(
-                            tile.ressource(),
-                            match building.0 {
-                                Building::LittleHouse => 1,
-                                Building::BigHouse => 2,
-                            },
-                        );
-                    }
+                    self.players[building.1 as usize].ressources_mut().add(
+                        tile.ressource(),
+                        match building.0 {
+                            Building::LittleHouse => 1,
+                            Building::BigHouse => 2,
+                        },
+                    );
                 }
 
                 amount -= 1;
@@ -308,8 +306,37 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
             .iter()
             .any(|(x, y)| self.building[*y as usize][*x as usize].is_some())
     }
+
+    pub fn steal(&mut self, from: u8, to: u8) {
+        let mut rng = rand::thread_rng();
+        let from = self.players[from as usize].ressources_mut();
+        let ressources: Vec<Ressource> = from
+            .gets()
+            .iter()
+            .filter(|(_, amount)| *amount > 0)
+            .map(|(ressource, _)| *ressource)
+            .collect();
+        if ressources.is_empty() {
+            return;
+        }
+        let ressource = ressources[rng.gen_range(0..ressources.len())];
+        from.sub(ressource, 1);
+        let to = self.players[to as usize].ressources_mut();
+        to.add(ressource, 1);
+    }
 }
 
+pub fn building_around_tile(x: u8, y: u8) -> [(u8, u8); 6] {
+    let x = x * 2 + (y % 2);
+    [
+        (x, y),
+        (x + 1, y),
+        (x + 2, y),
+        (x, y + 1),
+        (x + 1, y + 1),
+        (x + 2, y + 1),
+    ]
+}
 pub fn building_near_building(x: u8, y: u8) -> Vec<(u8, u8)> {
     let mut buildings: Vec<(u8, u8)> = hroad_near_building(x, y)
         .iter()

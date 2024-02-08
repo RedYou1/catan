@@ -4,9 +4,9 @@ use crate::{starting::Starting, Page};
 
 #[derive(PartialEq)]
 pub enum Thief {
-    No,
+    None,
     Waiting,
-    Done,
+    Choosing,
 }
 
 pub struct State {
@@ -24,7 +24,7 @@ impl State {
             to_reduce: RessourceManager::default(),
             dices: None,
             debut: Starting::new(),
-            thief: Thief::No,
+            thief: Thief::None,
         }
     }
 }

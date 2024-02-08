@@ -1,4 +1,8 @@
-use catan_lib::{game_manager::Game, player::TPlayer, ressource_manager::RessourceManager};
+use catan_lib::{
+    game_manager::{building_around_tile, Game},
+    player::TPlayer,
+    ressource_manager::RessourceManager,
+};
 use macroquad::{prelude::*, ui::root_ui};
 
 use crate::{
@@ -57,6 +61,11 @@ pub fn game(game: &mut Game<Player, 4>, state: &mut State) {
             return;
         }
 
+        if state.thief == Thief::Choosing {
+            choose_steal(game, state);
+            return;
+        }
+
         draw_text(
             format!("{a} {b}").as_str(),
             screen_width() / 2.0,
@@ -86,11 +95,48 @@ pub fn game(game: &mut Game<Player, 4>, state: &mut State) {
         state.thief = if a + b == 7 {
             Thief::Waiting
         } else {
-            Thief::No
+            Thief::None
         };
         if a + b == 7 {
             state.to_reduce = RessourceManager::default();
             state.page = Page::Reduce;
+        }
+    }
+}
+
+pub fn choose_steal(game: &mut Game<Player, 4>, state: &mut State) {
+    let mut ui = root_ui();
+    let player_id = game.current_player_id();
+    let players: Vec<(u8, &'static str, f32)> =
+        building_around_tile(game.thief().0, game.thief().1)
+            .iter()
+            .filter_map(|(a, b)| game.building(*a, *b))
+            .map(|(_, player)| (*player, *game.player(*player)))
+            .filter(|(id, player)| *id != player_id && player.ressources().amounts() > 0)
+            .map(|(id, player)| {
+                let pname = player.name();
+                (id, pname, ui.calc_size(pname).x + 10.0)
+            })
+            .collect();
+    if players.is_empty() {
+        state.thief = Thief::None;
+    } else if players.len() == 1 {
+        game.steal(players[0].0, player_id);
+        state.thief = Thief::None;
+    } else {
+        let mut px = screen_width() / 2.0 - players.iter().map(|(_, _, xx)| *xx).sum::<f32>() / 2.0;
+        for (player, pname, xx) in players {
+            if ui.button(
+                Vec2 {
+                    x: px,
+                    y: screen_height() - 40.0,
+                },
+                pname,
+            ) {
+                game.steal(player, player_id);
+                state.thief = Thief::None;
+            }
+            px += xx;
         }
     }
 }

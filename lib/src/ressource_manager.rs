@@ -23,6 +23,15 @@ impl RessourceManager {
             Ressource::Stone => self.stone,
         }
     }
+    pub const fn gets(self) -> [(Ressource, u8); 5] {
+        [
+            (Ressource::Tree, self.trees),
+            (Ressource::Wheet, self.wheets),
+            (Ressource::Brick, self.bricks),
+            (Ressource::Sheep, self.sheeps),
+            (Ressource::Stone, self.stone),
+        ]
+    }
 
     pub const fn can_buy(self, trees: u8, wheets: u8, bricks: u8, sheeps: u8, stone: u8) -> bool {
         self.trees >= trees
