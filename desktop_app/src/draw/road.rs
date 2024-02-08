@@ -1,17 +1,17 @@
 use super::building;
-use crate::{player::Player, Starting};
+use crate::{player::Player, state::State};
 use catan_lib::{
     game_manager::{self, Game},
     player::TPlayer,
 };
 use macroquad::{prelude::*, ui::root_ui};
 
-fn can_place_vroad(x: usize, y: usize, game: &Game<Player, 4>, debut: &Starting) -> bool {
+fn can_place_vroad(x: usize, y: usize, game: &Game<Player, 4>, state: &State) -> bool {
     let player_id = game.current_player_id();
-    if debut.road_turn() {
+    if state.debut.road_turn() {
         !game_manager::building_near_vroad(x, y)
             .iter()
-            .any(|(x1, y1)| debut.near_building(*x1, *y1))
+            .any(|(x1, y1)| state.debut.near_building(*x1, *y1))
     } else {
         !(game_manager::building_near_vroad(x, y)
             .iter()
@@ -22,25 +22,25 @@ fn can_place_vroad(x: usize, y: usize, game: &Game<Player, 4>, debut: &Starting)
     }
 }
 
-pub fn vroad(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, debut: &mut Starting) {
+pub fn vroad(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, state: &mut State) {
     let off = y % 2;
     buy_button(
         (x, y),
         building::coords(x * 2 + off, y, starty),
         building::coords(x * 2 + off, y + 1, starty),
         game,
-        &mut (debut, can_place_vroad),
+        &mut (state, can_place_vroad),
         Game::vroad,
         Game::vroad_mut,
     );
 }
 
-fn can_place_hroad(x: usize, y: usize, game: &Game<Player, 4>, debut: &Starting) -> bool {
+fn can_place_hroad(x: usize, y: usize, game: &Game<Player, 4>, state: &State) -> bool {
     let player_id = game.current_player_id();
-    if debut.road_turn() {
+    if state.debut.road_turn() {
         !game_manager::building_near_hroad(x, y)
             .iter()
-            .any(|(x1, y1)| debut.near_building(*x1, *y1))
+            .any(|(x1, y1)| state.debut.near_building(*x1, *y1))
     } else {
         !(game_manager::building_near_hroad(x, y)
             .iter()
@@ -54,13 +54,13 @@ fn can_place_hroad(x: usize, y: usize, game: &Game<Player, 4>, debut: &Starting)
     }
 }
 
-pub fn hroad(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, debut: &mut Starting) {
+pub fn hroad(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, state: &mut State) {
     buy_button(
         (x, y),
         building::coords(x, y, starty),
         building::coords(x + 1, y, starty),
         game,
-        &mut (debut, can_place_hroad),
+        &mut (state, can_place_hroad),
         Game::hroad,
         Game::hroad_mut,
     );
@@ -69,13 +69,13 @@ pub fn hroad(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, debut:
 fn buy_button<
     Get: Fn(&Game<Player, 4>, usize, usize) -> Option<&usize>,
     GetMut: Fn(&mut Game<Player, 4>, usize, usize) -> &mut Option<usize>,
-    CanPlace: Fn(usize, usize, &Game<Player, 4>, &Starting) -> bool,
+    CanPlace: Fn(usize, usize, &Game<Player, 4>, &State) -> bool,
 >(
     road_coord: (usize, usize),
     coord_1: (f32, f32),
     coord_2: (f32, f32),
     game: &mut Game<Player, 4>,
-    option: &mut (&mut Starting, CanPlace),
+    option: &mut (&mut State, CanPlace),
     get: Get,
     get_mut: GetMut,
 ) {
@@ -91,7 +91,7 @@ fn buy_button<
         );
     } else {
         let ressource = game.current_player().ressources();
-        if !option.0.road_turn() && !ressource.can_buy(1, 0, 1, 0, 0) {
+        if !option.0.debut.road_turn() && !ressource.can_buy(1, 0, 1, 0, 0) {
             return;
         }
         if option.1(road_coord.0, road_coord.1, game, option.0) {
@@ -110,8 +110,8 @@ fn buy_button<
             return;
         }
         *get_mut(game, road_coord.0, road_coord.1) = Some(game.current_player_id());
-        if option.0.road_turn() {
-            option.0.place_road(game);
+        if option.0.debut.road_turn() {
+            option.0.debut.place_road(game);
         } else {
             game.current_player_mut()
                 .ressources_mut()

@@ -5,7 +5,7 @@ use catan_lib::{
 };
 use macroquad::{prelude::*, ui::root_ui};
 
-use crate::{player::Player, Starting, HEX_SIZE};
+use crate::{player::Player, state::State, HEX_SIZE};
 
 pub fn coords(x: usize, y: usize, starty: f32) -> (f32, f32) {
     let px = f32::from(i16::try_from(x).expect("number try_from") - 5);
@@ -17,7 +17,7 @@ pub fn coords(x: usize, y: usize, starty: f32) -> (f32, f32) {
     )
 }
 
-pub fn building(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, debut: &mut Starting) {
+pub fn building(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, state: &mut State) {
     let current_playing = game.current_player_id();
     let (center_x, center_y) = coords(x, y, starty);
 
@@ -58,11 +58,11 @@ pub fn building(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, deb
         }
         None => {
             let ressource = game.current_player().ressources();
-            if !debut.building_turn() && !ressource.can_buy(1, 1, 1, 1, 0) {
+            if !state.debut.building_turn() && !ressource.can_buy(1, 1, 1, 1, 0) {
                 return;
             }
             if game.building_in_range(x, y)
-                || !(debut.building_turn()
+                || !(state.debut.building_turn()
                     || game_manager::hroad_near_building(x, y)
                         .iter()
                         .any(|(x1, y1)| {
@@ -92,8 +92,8 @@ pub fn building(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, deb
                 return;
             }
             *game.building_mut(x, y) = Some((Building::LittleHouse, game.current_player_id()));
-            if debut.building_turn() {
-                debut.place_building(x, y);
+            if state.debut.building_turn() {
+                state.debut.place_building(x, y);
             } else {
                 game.current_player_mut()
                     .ressources_mut()

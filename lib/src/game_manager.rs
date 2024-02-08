@@ -16,6 +16,7 @@ pub struct Game<Player: TPlayer, const PLAYERS_COUNT: usize> {
     vroad: [[Option<usize>; 6]; 5],
     hroad: [[Option<usize>; 10]; 6],
     to_play: usize,
+    thief: (usize, usize),
 }
 
 impl<Player: TPlayer + Default + Copy, const PLAYERS_COUNT: usize> Default
@@ -31,6 +32,7 @@ impl<Player: TPlayer + Default + Copy, const PLAYERS_COUNT: usize> Default
             vroad: [[None; 6]; 5],
             hroad: [[None; 10]; 6],
             to_play: 0,
+            thief: (0, 0),
         }
     }
 }
@@ -63,6 +65,13 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
             None,
         ];
         tiles.shuffle(&mut rng);
+        let mut dessert_id = 0;
+        for (i, item) in tiles.iter().enumerate() {
+            if let None = item {
+                dessert_id = i;
+                break;
+            }
+        }
 
         let mut ports = [
             Some(Ressource::Tree),
@@ -102,6 +111,28 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
             vroad: [[None; 6]; 5],
             hroad: [[None; 10]; 6],
             to_play: rng.gen_range(0..PLAYERS_COUNT),
+            thief: match dessert_id {
+                0 => (1, 0),
+                1 => (2, 0),
+                2 => (3, 0),
+                3 => (0, 1),
+                4 => (1, 1),
+                5 => (2, 1),
+                6 => (3, 1),
+                7 => (0, 2),
+                8 => (1, 2),
+                9 => (2, 2),
+                10 => (3, 2),
+                11 => (4, 2),
+                12 => (0, 3),
+                13 => (1, 3),
+                14 => (2, 3),
+                15 => (3, 3),
+                16 => (1, 4),
+                17 => (2, 4),
+                18 => (3, 4),
+                _ => (0, 0),
+            },
         })
     }
 
@@ -219,6 +250,14 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
 
     pub const fn tiles(&self) -> &[[Option<Tile>; 5]; 5] {
         &self.map
+    }
+
+    pub const fn thief(&self) -> &(usize, usize) {
+        &self.thief
+    }
+
+    pub fn thief_mut(&mut self) -> &mut (usize, usize) {
+        &mut self.thief
     }
 
     pub fn update_longuest_road(

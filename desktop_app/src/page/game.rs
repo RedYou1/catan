@@ -9,16 +9,11 @@ use crate::{
         tile,
     },
     player::Player,
-    Page, Starting,
+    state::{State, Thief},
+    Page,
 };
 
-pub fn game(
-    game: &mut Game<Player, 4>,
-    page: &mut Page,
-    to_reduce: &mut RessourceManager,
-    dice_played: &mut Option<(u8, u8)>,
-    debut: &mut Starting,
-) {
+pub fn game(game: &mut Game<Player, 4>, state: &mut State) {
     let current_player = game.current_player();
     let mut new_y = texts_vertical(
         &[format!("Player to play: {}", current_player.name())],
@@ -34,9 +29,11 @@ pub fn game(
             .iter()
             .map(|player| {
                 format!(
-                    "Ressource of Player: {}, {:?}",
+                    "Player:{} LR:{} Army:{} {}",
                     player.name(),
-                    player.ressources()
+                    player.longuest_road(),
+                    player.army(),
+                    player.ressources().to_string()
                 )
             })
             .collect::<Vec<String>>(),
@@ -48,14 +45,18 @@ pub fn game(
     );
     new_y -= 30.0;
 
-    draw_tiles(new_y, game);
-    draw_roads(new_y, game, debut);
-    draw_buildings(new_y, game, debut);
+    draw_tiles(new_y, game, state);
+    draw_roads(new_y, game, state);
+    draw_buildings(new_y, game, state);
 
-    if debut.is_starting() {
+    if state.debut.is_starting() {
         return;
     }
-    if let Some((a, b)) = *dice_played {
+    if let Some((a, b)) = state.dices {
+        if state.thief == Thief::Waiting {
+            return;
+        }
+
         draw_text(
             format!("{a} {b}").as_str(),
             screen_width() / 2.0,
@@ -71,7 +72,7 @@ pub fn game(
             "Next",
         ) {
             game.next_player();
-            *dice_played = None;
+            state.dices = None;
         }
     } else if root_ui().button(
         Vec2 {
@@ -81,29 +82,34 @@ pub fn game(
         "Dice",
     ) {
         let (a, b) = game.throw_dice();
-        *dice_played = Some((a, b));
+        state.dices = Some((a, b));
+        state.thief = if a + b == 7 {
+            Thief::Waiting
+        } else {
+            Thief::No
+        };
         if a + b == 7 {
-            *to_reduce = RessourceManager::default();
-            *page = Page::Reduce;
+            state.to_reduce = RessourceManager::default();
+            state.page = Page::Reduce;
         }
     }
 }
 
-pub fn draw_tiles(new_y: f32, game: &Game<Player, 4>) {
-    for (y, row) in game.tiles().iter().enumerate() {
-        for (x, tile) in row.iter().enumerate() {
+pub fn draw_tiles(new_y: f32, game: &mut Game<Player, 4>, state: &mut State) {
+    for y in 0..5 {
+        for x in 0..5 {
             if (x == 0 || x == 4) && (y == 0 || y == 4) {
                 continue;
             }
             if x == 4 && (y == 1 || y == 3) {
                 continue;
             }
-            tile::tile(x, y, new_y, *tile);
+            tile::tile(x, y, new_y, game, state);
         }
     }
 }
 
-pub fn draw_buildings(new_y: f32, game: &mut Game<Player, 4>, debut: &mut Starting) {
+pub fn draw_buildings(new_y: f32, game: &mut Game<Player, 4>, state: &mut State) {
     for y in 0..6 {
         for x in 0..11 {
             if (y == 0 || y == 5) && (x <= 1 || x >= 9) {
@@ -112,12 +118,12 @@ pub fn draw_buildings(new_y: f32, game: &mut Game<Player, 4>, debut: &mut Starti
             if (y == 1 || y == 4) && (x == 0 || x == 10) {
                 continue;
             }
-            building(x, y, new_y, game, debut);
+            building(x, y, new_y, game, state);
         }
     }
 }
 
-pub fn draw_roads(new_y: f32, game: &mut Game<Player, 4>, debut: &mut Starting) {
+pub fn draw_roads(new_y: f32, game: &mut Game<Player, 4>, state: &mut State) {
     for y in 0..5 {
         for x in 0..6 {
             if (y == 0 || y == 4) && (x == 0 || x == 5) {
@@ -126,7 +132,7 @@ pub fn draw_roads(new_y: f32, game: &mut Game<Player, 4>, debut: &mut Starting) 
             if (y == 1 || y == 3) && x == 5 {
                 continue;
             }
-            vroad(x, y, new_y, game, debut);
+            vroad(x, y, new_y, game, state);
         }
     }
 
@@ -138,7 +144,7 @@ pub fn draw_roads(new_y: f32, game: &mut Game<Player, 4>, debut: &mut Starting) 
             if (y == 1 || y == 4) && (x == 0 || x == 9) {
                 continue;
             }
-            hroad(x, y, new_y, game, debut);
+            hroad(x, y, new_y, game, state);
         }
     }
 }

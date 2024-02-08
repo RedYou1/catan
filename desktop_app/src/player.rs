@@ -10,7 +10,7 @@ pub struct Player {
     house_remaining: usize,
     big_house_remaining: usize,
     longuest_road: usize,
-    military: usize,
+    army: usize,
     ressources: RessourceManager,
 }
 
@@ -43,11 +43,11 @@ impl TPlayer for Player {
         &mut self.longuest_road
     }
 
-    fn military(&self) -> usize {
-        self.military
+    fn army(&self) -> usize {
+        self.army
     }
-    fn military_mut(&mut self) -> &mut usize {
-        &mut self.military
+    fn army_mut(&mut self) -> &mut usize {
+        &mut self.army
     }
 
     fn ressources(&self) -> &RessourceManager {
@@ -68,7 +68,7 @@ impl Player {
             house_remaining: 5,
             big_house_remaining: 4,
             longuest_road: 0,
-            military: 0,
+            army: 0,
             ressources: RessourceManager::default(),
         }
     }

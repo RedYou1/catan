@@ -68,3 +68,12 @@ impl RessourceManager {
         self.stone -= stone;
     }
 }
+
+impl ToString for RessourceManager {
+    fn to_string(&self) -> String {
+        format!(
+            "Tree:{} Wheet:{} Brick:{} Sheep:{} Stone:{}",
+            self.trees, self.wheets, self.bricks, self.sheeps, self.stone
+        )
+    }
+}

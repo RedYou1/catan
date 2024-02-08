@@ -13,8 +13,8 @@ pub trait TPlayer {
     fn longuest_road(&self) -> usize;
     fn longuest_road_mut(&mut self) -> &mut usize;
 
-    fn military(&self) -> usize;
-    fn military_mut(&mut self) -> &mut usize;
+    fn army(&self) -> usize;
+    fn army_mut(&mut self) -> &mut usize;
 
     fn ressources(&self) -> &RessourceManager;
     fn ressources_mut(&mut self) -> &mut RessourceManager;

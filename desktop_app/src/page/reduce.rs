@@ -4,18 +4,20 @@ use catan_lib::{
 use macroquad::{prelude::*, ui::root_ui};
 
 use crate::{
-    draw::texts_horizontal::texts_horizontal, draw::texts_vertical::texts_vertical,
-    player::Player, Page,
+    draw::{texts_horizontal::texts_horizontal, texts_vertical::texts_vertical},
+    player::Player,
+    state::State,
+    Page,
 };
 
-pub fn reduce(game: &mut Game<Player, 4>, page: &mut Page, to_reduce: &mut RessourceManager) {
+pub fn reduce(game: &mut Game<Player, 4>, state: &mut State) {
     let max_amount = game.max_ressource();
     let Some(player) = game
         .players_mut()
         .iter_mut()
         .find(|player| player.ressources().amounts() > max_amount)
     else {
-        *page = Page::Main;
+        state.page = Page::Main;
         return;
     };
 
@@ -51,9 +53,9 @@ pub fn reduce(game: &mut Game<Player, 4>, page: &mut Page, to_reduce: &mut Resso
         (4.0, Ressource::Sheep),
         (5.0, Ressource::Stone),
     ] {
-        let current_reduce = to_reduce.get(ressource);
+        let current_reduce = state.to_reduce.get(ressource);
         if ressources.get(ressource) > current_reduce
-            && to_reduce.amounts() < max_amount
+            && state.to_reduce.amounts() < max_amount
             && root_ui().button(
                 Vec2 {
                     x: i * 100.0,
@@ -62,7 +64,7 @@ pub fn reduce(game: &mut Game<Player, 4>, page: &mut Page, to_reduce: &mut Resso
                 "+",
             )
         {
-            to_reduce.add(ressource, 1);
+            state.to_reduce.add(ressource, 1);
         }
 
         draw_text(
@@ -82,11 +84,11 @@ pub fn reduce(game: &mut Game<Player, 4>, page: &mut Page, to_reduce: &mut Resso
                 "-",
             )
         {
-            to_reduce.sub(ressource, 1);
+            state.to_reduce.sub(ressource, 1);
         }
     }
 
-    if to_reduce.amounts() == max_amount
+    if state.to_reduce.amounts() == max_amount
         && root_ui().button(
             Vec2 {
                 x: screen_width() / 2.0 - 25.0,
@@ -95,7 +97,7 @@ pub fn reduce(game: &mut Game<Player, 4>, page: &mut Page, to_reduce: &mut Resso
             "Reduce",
         )
     {
-        *ressources = *to_reduce;
-        *to_reduce = RessourceManager::default();
+        *ressources = state.to_reduce;
+        state.to_reduce = RessourceManager::default();
     }
 }
