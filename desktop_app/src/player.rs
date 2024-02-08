@@ -6,47 +6,47 @@ use macroquad::prelude::*;
 pub struct Player {
     name: &'static str,
     color: Color,
-    road_remaining: usize,
-    house_remaining: usize,
-    big_house_remaining: usize,
-    longuest_road: usize,
-    army: usize,
+    road_remaining: u8,
+    house_remaining: u8,
+    big_house_remaining: u8,
+    longuest_road: u8,
+    army: u8,
     ressources: RessourceManager,
 }
 
 impl TPlayer for Player {
-    fn road_remaining(&self) -> usize {
+    fn road_remaining(&self) -> u8 {
         self.road_remaining
     }
-    fn road_remaining_mut(&mut self) -> &mut usize {
+    fn road_remaining_mut(&mut self) -> &mut u8 {
         &mut self.road_remaining
     }
 
-    fn house_remaining(&self) -> usize {
+    fn house_remaining(&self) -> u8 {
         self.house_remaining
     }
-    fn house_remaining_mut(&mut self) -> &mut usize {
+    fn house_remaining_mut(&mut self) -> &mut u8 {
         &mut self.house_remaining
     }
 
-    fn big_house_remaining(&self) -> usize {
+    fn big_house_remaining(&self) -> u8 {
         self.big_house_remaining
     }
-    fn big_house_remaining_mut(&mut self) -> &mut usize {
+    fn big_house_remaining_mut(&mut self) -> &mut u8 {
         &mut self.big_house_remaining
     }
 
-    fn longuest_road(&self) -> usize {
+    fn longuest_road(&self) -> u8 {
         self.longuest_road
     }
-    fn longuest_road_mut(&mut self) -> &mut usize {
+    fn longuest_road_mut(&mut self) -> &mut u8 {
         &mut self.longuest_road
     }
 
-    fn army(&self) -> usize {
+    fn army(&self) -> u8 {
         self.army
     }
-    fn army_mut(&mut self) -> &mut usize {
+    fn army_mut(&mut self) -> &mut u8 {
         &mut self.army
     }
 

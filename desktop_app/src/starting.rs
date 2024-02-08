@@ -4,9 +4,9 @@ use crate::player::Player;
 
 pub struct Starting {
     building: bool,
-    step: usize,
-    building_x: usize,
-    building_y: usize,
+    step: u8,
+    building_x: u8,
+    building_y: u8,
 }
 
 impl Starting {
@@ -18,7 +18,7 @@ impl Starting {
             building_y: 0,
         }
     }
-    pub fn place_building(&mut self, x: usize, y: usize) {
+    pub fn place_building(&mut self, x: u8, y: u8) {
         self.building_x = x;
         self.building_y = y;
         self.building = true;
@@ -33,7 +33,7 @@ impl Starting {
             game.next_player();
         }
     }
-    pub const fn near_building(&self, x: usize, y: usize) -> bool {
+    pub const fn near_building(&self, x: u8, y: u8) -> bool {
         self.building_x == x && self.building_y == y
     }
     pub const fn is_starting(&self) -> bool {

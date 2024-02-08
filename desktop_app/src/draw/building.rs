@@ -7,9 +7,9 @@ use macroquad::{prelude::*, ui::root_ui};
 
 use crate::{player::Player, state::State, HEX_SIZE};
 
-pub fn coords(x: usize, y: usize, starty: f32) -> (f32, f32) {
-    let px = f32::from(i16::try_from(x).expect("number try_from") - 5);
-    let py = f32::from(i16::try_from(y).expect("number try_from"));
+pub fn coords(x: u8, y: u8, starty: f32) -> (f32, f32) {
+    let px = f32::from(x) - 5.0;
+    let py = f32::from(y);
     let isoff = f32::from(x % 2 == y % 2);
     (
         screen_width() / 2.0 + 1.8 * HEX_SIZE * px / 2.0,
@@ -17,7 +17,7 @@ pub fn coords(x: usize, y: usize, starty: f32) -> (f32, f32) {
     )
 }
 
-pub fn building(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, state: &mut State) {
+pub fn building(x: u8, y: u8, starty: f32, game: &mut Game<Player, 4>, state: &mut State) {
     let current_playing = game.current_player_id();
     let (center_x, center_y) = coords(x, y, starty);
 

@@ -8,8 +8,8 @@ use crate::{
     HEX_SIZE,
 };
 
-pub fn tile(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, state: &mut State) {
-    let tile = game.tiles()[y][x];
+pub fn tile(x: u8, y: u8, starty: f32, game: &mut Game<Player, 4>, state: &mut State) {
+    let tile = game.tiles()[y as usize][x as usize];
     let color = if let Some(tile) = tile {
         match tile.ressource() {
             Ressource::Tree => GREEN,
@@ -22,9 +22,9 @@ pub fn tile(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, state: 
         YELLOW
     };
 
-    let px = f32::from(i16::try_from(x).expect("number try_from")) - 2.0;
-    let py = f32::from(i16::try_from(y).expect("number try_from"));
-    let isoff = f32::from(u8::try_from(y % 2).expect("number try_from")) / 2.0;
+    let px = f32::from(x) - 2.0;
+    let py = f32::from(y);
+    let isoff = f32::from(y % 2) / 2.0;
 
     let center_x = screen_width() / 2.0 + 1.8 * HEX_SIZE * (px + isoff);
     let center_y = starty + HEX_SIZE * 2.0 + 1.54 * HEX_SIZE * py;

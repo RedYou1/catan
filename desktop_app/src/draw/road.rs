@@ -6,7 +6,7 @@ use catan_lib::{
 };
 use macroquad::{prelude::*, ui::root_ui};
 
-fn can_place_vroad(x: usize, y: usize, game: &Game<Player, 4>, state: &State) -> bool {
+fn can_place_vroad(x: u8, y: u8, game: &Game<Player, 4>, state: &State) -> bool {
     let player_id = game.current_player_id();
     if state.debut.road_turn() {
         !game_manager::building_near_vroad(x, y)
@@ -22,7 +22,7 @@ fn can_place_vroad(x: usize, y: usize, game: &Game<Player, 4>, state: &State) ->
     }
 }
 
-pub fn vroad(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, state: &mut State) {
+pub fn vroad(x: u8, y: u8, starty: f32, game: &mut Game<Player, 4>, state: &mut State) {
     let off = y % 2;
     buy_button(
         (x, y),
@@ -35,7 +35,7 @@ pub fn vroad(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, state:
     );
 }
 
-fn can_place_hroad(x: usize, y: usize, game: &Game<Player, 4>, state: &State) -> bool {
+fn can_place_hroad(x: u8, y: u8, game: &Game<Player, 4>, state: &State) -> bool {
     let player_id = game.current_player_id();
     if state.debut.road_turn() {
         !game_manager::building_near_hroad(x, y)
@@ -54,7 +54,7 @@ fn can_place_hroad(x: usize, y: usize, game: &Game<Player, 4>, state: &State) ->
     }
 }
 
-pub fn hroad(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, state: &mut State) {
+pub fn hroad(x: u8, y: u8, starty: f32, game: &mut Game<Player, 4>, state: &mut State) {
     buy_button(
         (x, y),
         building::coords(x, y, starty),
@@ -67,11 +67,11 @@ pub fn hroad(x: usize, y: usize, starty: f32, game: &mut Game<Player, 4>, state:
 }
 
 fn buy_button<
-    Get: Fn(&Game<Player, 4>, usize, usize) -> Option<&usize>,
-    GetMut: Fn(&mut Game<Player, 4>, usize, usize) -> &mut Option<usize>,
-    CanPlace: Fn(usize, usize, &Game<Player, 4>, &State) -> bool,
+    Get: Fn(&Game<Player, 4>, u8, u8) -> Option<&u8>,
+    GetMut: Fn(&mut Game<Player, 4>, u8, u8) -> &mut Option<u8>,
+    CanPlace: Fn(u8, u8, &Game<Player, 4>, &State) -> bool,
 >(
-    road_coord: (usize, usize),
+    road_coord: (u8, u8),
     coord_1: (f32, f32),
     coord_2: (f32, f32),
     game: &mut Game<Player, 4>,
