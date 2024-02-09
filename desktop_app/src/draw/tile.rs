@@ -1,15 +1,14 @@
-use catan_lib::{game_manager::Game, ressource::Ressource};
+use catan_lib::ressource::Ressource;
 use macroquad::{prelude::*, ui::root_ui};
 
 use crate::{
+    data::{Data, Thief},
     draw::texts_vertical::texts_vertical,
-    player::Player,
-    state::{State, Thief},
     HEX_SIZE,
 };
 
-pub fn tile(x: u8, y: u8, starty: f32, game: &mut Game<Player, 4>, state: &mut State) {
-    let tile = game.tiles()[y as usize][x as usize];
+pub fn tile(x: u8, y: u8, starty: f32, state: &mut Data) {
+    let tile = state.game.tiles()[y as usize][x as usize];
     let color = if let Some(tile) = tile {
         match tile.ressource() {
             Ressource::Tree => GREEN,
@@ -53,7 +52,7 @@ pub fn tile(x: u8, y: u8, starty: f32, game: &mut Game<Player, 4>, state: &mut S
         );
     }
 
-    if *game.thief() == (x, y) {
+    if *state.game.thief() == (x, y) {
         draw_rectangle(
             center_x - HEX_SIZE / 2.0,
             center_y - HEX_SIZE / 2.0,
@@ -71,6 +70,6 @@ pub fn tile(x: u8, y: u8, starty: f32, game: &mut Game<Player, 4>, state: &mut S
         )
     {
         state.thief = Thief::Choosing;
-        *game.thief_mut() = (x, y);
+        *state.game.thief_mut() = (x, y);
     }
 }

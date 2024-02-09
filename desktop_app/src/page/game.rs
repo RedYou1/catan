@@ -1,24 +1,21 @@
 use catan_lib::{
-    game_manager::{building_around_tile, Game},
-    player::TPlayer,
-    ressource_manager::RessourceManager,
+    game_manager::building_around_tile, player::TPlayer, ressource_manager::RessourceManager,
 };
 use macroquad::{prelude::*, ui::root_ui};
 
 use crate::{
+    data::{Data, Thief},
     draw::{
         building::building,
         road::{hroad, vroad},
         texts_vertical::texts_vertical,
         tile,
     },
-    player::Player,
-    state::{State, Thief},
     Page,
 };
 
-pub fn game(game: &mut Game<Player, 4>, state: &mut State) {
-    let current_player = game.current_player();
+pub fn game(state: &mut Data) {
+    let current_player = state.game.current_player();
     let mut new_y = texts_vertical(
         &[format!("Player to play: {}", current_player.name())],
         screen_width() / 2.0,
@@ -28,7 +25,8 @@ pub fn game(game: &mut Game<Player, 4>, state: &mut State) {
         WHITE,
     );
     new_y = texts_vertical(
-        &game
+        &state
+            .game
             .players()
             .iter()
             .map(|player| {
@@ -49,9 +47,9 @@ pub fn game(game: &mut Game<Player, 4>, state: &mut State) {
     );
     new_y -= 30.0;
 
-    draw_tiles(new_y, game, state);
-    draw_roads(new_y, game, state);
-    draw_buildings(new_y, game, state);
+    draw_tiles(new_y, state);
+    draw_roads(new_y, state);
+    draw_buildings(new_y, state);
 
     if state.debut.is_starting() {
         return;
@@ -62,7 +60,7 @@ pub fn game(game: &mut Game<Player, 4>, state: &mut State) {
         }
 
         if state.thief == Thief::Choosing {
-            choose_steal(game, state);
+            choose_steal(state);
             return;
         }
 
@@ -80,7 +78,7 @@ pub fn game(game: &mut Game<Player, 4>, state: &mut State) {
             },
             "Next",
         ) {
-            game.next_player();
+            state.game.next_player();
             state.dices = None;
         }
     } else if root_ui().button(
@@ -90,7 +88,7 @@ pub fn game(game: &mut Game<Player, 4>, state: &mut State) {
         },
         "Dice",
     ) {
-        let (a, b) = game.throw_dice();
+        let (a, b) = state.game.throw_dice();
         state.dices = Some((a, b));
         state.thief = if a + b == 7 {
             Thief::Waiting
@@ -104,14 +102,14 @@ pub fn game(game: &mut Game<Player, 4>, state: &mut State) {
     }
 }
 
-pub fn choose_steal(game: &mut Game<Player, 4>, state: &mut State) {
+pub fn choose_steal(state: &mut Data) {
     let mut ui = root_ui();
-    let player_id = game.current_player_id();
+    let player_id = state.game.current_player_id();
     let players: Vec<(u8, &'static str, f32)> =
-        building_around_tile(game.thief().0, game.thief().1)
+        building_around_tile(state.game.thief().0, state.game.thief().1)
             .iter()
-            .filter_map(|(a, b)| game.building(*a, *b))
-            .map(|(_, player)| (*player, *game.player(*player)))
+            .filter_map(|(a, b)| state.game.building(*a, *b))
+            .map(|(_, player)| (*player, *state.game.player(*player)))
             .filter(|(id, player)| *id != player_id && player.ressources().amounts() > 0)
             .map(|(id, player)| {
                 let pname = player.name();
@@ -121,7 +119,7 @@ pub fn choose_steal(game: &mut Game<Player, 4>, state: &mut State) {
     if players.is_empty() {
         state.thief = Thief::None;
     } else if players.len() == 1 {
-        game.steal(players[0].0, player_id);
+        state.game.steal(players[0].0, player_id);
         state.thief = Thief::None;
     } else {
         let mut px = screen_width() / 2.0 - players.iter().map(|(_, _, xx)| *xx).sum::<f32>() / 2.0;
@@ -133,7 +131,7 @@ pub fn choose_steal(game: &mut Game<Player, 4>, state: &mut State) {
                 },
                 pname,
             ) {
-                game.steal(player, player_id);
+                state.game.steal(player, player_id);
                 state.thief = Thief::None;
             }
             px += xx;
@@ -141,7 +139,7 @@ pub fn choose_steal(game: &mut Game<Player, 4>, state: &mut State) {
     }
 }
 
-pub fn draw_tiles(new_y: f32, game: &mut Game<Player, 4>, state: &mut State) {
+pub fn draw_tiles(new_y: f32, state: &mut Data) {
     for y in 0..5 {
         for x in 0..5 {
             if (x == 0 || x == 4) && (y == 0 || y == 4) {
@@ -150,12 +148,12 @@ pub fn draw_tiles(new_y: f32, game: &mut Game<Player, 4>, state: &mut State) {
             if x == 4 && (y == 1 || y == 3) {
                 continue;
             }
-            tile::tile(x, y, new_y, game, state);
+            tile::tile(x, y, new_y, state);
         }
     }
 }
 
-pub fn draw_buildings(new_y: f32, game: &mut Game<Player, 4>, state: &mut State) {
+pub fn draw_buildings(new_y: f32, state: &mut Data) {
     for y in 0..6 {
         for x in 0..11 {
             if (y == 0 || y == 5) && (x <= 1 || x >= 9) {
@@ -164,12 +162,12 @@ pub fn draw_buildings(new_y: f32, game: &mut Game<Player, 4>, state: &mut State)
             if (y == 1 || y == 4) && (x == 0 || x == 10) {
                 continue;
             }
-            building(x, y, new_y, game, state);
+            building(x, y, new_y, state);
         }
     }
 }
 
-pub fn draw_roads(new_y: f32, game: &mut Game<Player, 4>, state: &mut State) {
+pub fn draw_roads(new_y: f32, state: &mut Data) {
     for y in 0..5 {
         for x in 0..6 {
             if (y == 0 || y == 4) && (x == 0 || x == 5) {
@@ -178,7 +176,7 @@ pub fn draw_roads(new_y: f32, game: &mut Game<Player, 4>, state: &mut State) {
             if (y == 1 || y == 3) && x == 5 {
                 continue;
             }
-            vroad(x, y, new_y, game, state);
+            vroad(x, y, new_y, state);
         }
     }
 
@@ -190,7 +188,7 @@ pub fn draw_roads(new_y: f32, game: &mut Game<Player, 4>, state: &mut State) {
             if (y == 1 || y == 4) && (x == 0 || x == 9) {
                 continue;
             }
-            hroad(x, y, new_y, game, state);
+            hroad(x, y, new_y, state);
         }
     }
 }

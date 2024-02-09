@@ -1,17 +1,15 @@
 #![feature(const_trait_impl, effects)]
 
-use catan_lib::game_manager::Game;
+use data::Data;
 use macroquad::prelude::*;
 use page::game;
 use page::reduce::reduce;
-use player::Player;
-use state::State;
 
+mod data;
 mod draw;
 mod page;
 mod player;
 mod starting;
-mod state;
 
 pub const HEX_SIZE: f32 = 50.0;
 
@@ -32,24 +30,13 @@ pub enum Page {
 #[allow(clippy::too_many_lines)]
 #[macroquad::main(configure_window)]
 async fn main() {
-    #[deny(clippy::needless_pass_by_value)]
-    let mut game = Game::new(
-        7,
-        [
-            Player::new("Blue", BLUE),
-            Player::new("Red", RED),
-            Player::new("Green", GREEN),
-            Player::new("Yellow", YELLOW),
-        ],
-    )
-    .expect("Couldn't create the game");
-    let mut state = State::new();
+    let mut state = Data::new();
     loop {
         clear_background(DARKGRAY);
 
         match state.page {
-            Page::Main => game::game(&mut game, &mut state),
-            Page::Reduce => reduce(&mut game, &mut state),
+            Page::Main => game::game(&mut state),
+            Page::Reduce => reduce(&mut state),
         }
 
         next_frame().await;

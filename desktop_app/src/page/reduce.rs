@@ -1,18 +1,16 @@
-use catan_lib::{
-    game_manager::Game, player::TPlayer, ressource::Ressource, ressource_manager::RessourceManager,
-};
+use catan_lib::{player::TPlayer, ressource::Ressource, ressource_manager::RessourceManager};
 use macroquad::{prelude::*, ui::root_ui};
 
 use crate::{
+    data::Data,
     draw::{texts_horizontal::texts_horizontal, texts_vertical::texts_vertical},
-    player::Player,
-    state::State,
     Page,
 };
 
-pub fn reduce(game: &mut Game<Player, 4>, state: &mut State) {
-    let max_amount = game.max_ressource();
-    let Some(player) = game
+pub fn reduce(state: &mut Data) {
+    let max_amount = state.game.max_ressource();
+    let Some(player) = state
+        .game
         .players_mut()
         .iter_mut()
         .find(|player| player.ressources().amounts() > max_amount)
