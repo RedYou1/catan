@@ -3,6 +3,7 @@ use macroquad::{prelude::*, ui::root_ui};
 
 use crate::{data::Data, HEX_SIZE};
 
+#[profiling::function]
 pub fn coords(x: u8, y: u8, starty: f32) -> (f32, f32) {
     let px = f32::from(x) - 5.0;
     let py = f32::from(y);
@@ -13,6 +14,7 @@ pub fn coords(x: u8, y: u8, starty: f32) -> (f32, f32) {
     )
 }
 
+#[profiling::function]
 pub fn building(x: u8, y: u8, starty: f32, state: &mut Data) {
     let current_playing = state.game.current_player_id();
     let (center_x, center_y) = coords(x, y, starty);
@@ -52,37 +54,14 @@ pub fn building(x: u8, y: u8, starty: f32, state: &mut Data) {
             ) {
                 return;
             }
-            *state.game.building_mut(x, y) = Some((Building::BigHouse, *player_id));
-            state
-                .game
-                .current_player_mut()
-                .ressources_mut()
-                .buy(0, 2, 0, 0, 3);
+            upgrade(x, y, *player_id, state);
         }
         None => {
             let ressource = state.game.current_player().ressources();
             if !state.debut.building_turn() && !ressource.can_buy(1, 1, 1, 1, 0) {
                 return;
             }
-            if state.game.building_in_range(x, y)
-                || !(state.debut.building_turn()
-                    || game_manager::hroad_near_building(x, y)
-                        .iter()
-                        .any(|(x1, y1)| {
-                            state
-                                .game
-                                .hroad(*x1, *y1)
-                                .map_or(false, |a| *a == current_playing)
-                        })
-                    || game_manager::vroad_near_building(x, y)
-                        .iter()
-                        .any(|(x1, y1)| {
-                            state
-                                .game
-                                .vroad(*x1, *y1)
-                                .map_or(false, |a| *a == current_playing)
-                        }))
-            {
+            if can_place(x, y, current_playing, state) {
                 return;
             }
             if state.game.building_in_range(x, y) {
@@ -98,17 +77,53 @@ pub fn building(x: u8, y: u8, starty: f32, state: &mut Data) {
             ) {
                 return;
             }
-            *state.game.building_mut(x, y) =
-                Some((Building::LittleHouse, state.game.current_player_id()));
-            if state.debut.building_turn() {
-                state.debut.place_building(x, y);
-            } else {
-                state
-                    .game
-                    .current_player_mut()
-                    .ressources_mut()
-                    .buy(1, 1, 1, 1, 0);
-            }
+            buy_none(x, y, state);
         }
+    }
+}
+
+#[profiling::function]
+fn upgrade(x: u8, y: u8, player_id: u8, state: &mut Data) {
+    *state.game.building_mut(x, y) = Some((Building::BigHouse, player_id));
+    state
+        .game
+        .current_player_mut()
+        .ressources_mut()
+        .buy(0, 2, 0, 0, 3);
+}
+
+#[profiling::function]
+fn can_place(x: u8, y: u8, current_playing: u8, state: &Data) -> bool {
+    state.game.building_in_range(x, y)
+        || !(state.debut.building_turn()
+            || game_manager::hroad_near_building(x, y)
+                .iter()
+                .any(|(x1, y1)| {
+                    state
+                        .game
+                        .hroad(*x1, *y1)
+                        .map_or(false, |a| *a == current_playing)
+                })
+            || game_manager::vroad_near_building(x, y)
+                .iter()
+                .any(|(x1, y1)| {
+                    state
+                        .game
+                        .vroad(*x1, *y1)
+                        .map_or(false, |a| *a == current_playing)
+                }))
+}
+
+#[profiling::function]
+fn buy_none(x: u8, y: u8, state: &mut Data) {
+    *state.game.building_mut(x, y) = Some((Building::LittleHouse, state.game.current_player_id()));
+    if state.debut.building_turn() {
+        state.debut.place_building(x, y);
+    } else {
+        state
+            .game
+            .current_player_mut()
+            .ressources_mut()
+            .buy(1, 1, 1, 1, 0);
     }
 }

@@ -6,6 +6,7 @@ use catan_lib::{
 };
 use macroquad::{prelude::*, ui::root_ui};
 
+#[profiling::function]
 fn can_place_vroad(x: u8, y: u8, state: &Data) -> bool {
     let player_id = state.game.current_player_id();
     !if state.debut.road_turn() {
@@ -22,6 +23,7 @@ fn can_place_vroad(x: u8, y: u8, state: &Data) -> bool {
     }
 }
 
+#[profiling::function]
 pub fn vroad(x: u8, y: u8, starty: f32, state: &mut Data) {
     let off = y % 2;
     buy_button(
@@ -35,6 +37,7 @@ pub fn vroad(x: u8, y: u8, starty: f32, state: &mut Data) {
     );
 }
 
+#[profiling::function]
 fn can_place_hroad(x: u8, y: u8, state: &Data) -> bool {
     let player_id = state.game.current_player_id();
     !if state.debut.road_turn() {
@@ -56,6 +59,7 @@ fn can_place_hroad(x: u8, y: u8, state: &Data) -> bool {
     }
 }
 
+#[profiling::function]
 pub fn hroad(x: u8, y: u8, starty: f32, state: &mut Data) {
     buy_button(
         (x, y),
@@ -111,16 +115,25 @@ fn buy_button<
         ) {
             return;
         }
-        *get_mut(&mut state.game, road_coord.0, road_coord.1) =
-            Some(state.game.current_player_id());
-        if state.debut.road_turn() {
-            state.debut.place_road(&mut state.game);
-        } else {
-            state
-                .game
-                .current_player_mut()
-                .ressources_mut()
-                .buy(1, 0, 1, 0, 0);
-        }
+        buy_road(road_coord.0, road_coord.1, get_mut, state);
+    }
+}
+
+#[profiling::function]
+fn buy_road<GetMut: Fn(&mut Game<Player, 4>, u8, u8) -> &mut Option<u8>>(
+    x: u8,
+    y: u8,
+    get_mut: GetMut,
+    state: &mut Data,
+) {
+    *get_mut(&mut state.game, x, y) = Some(state.game.current_player_id());
+    if state.debut.road_turn() {
+        state.debut.place_road(&mut state.game);
+    } else {
+        state
+            .game
+            .current_player_mut()
+            .ressources_mut()
+            .buy(1, 0, 1, 0, 0);
     }
 }

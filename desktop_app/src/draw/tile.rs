@@ -7,6 +7,7 @@ use crate::{
     HEX_SIZE,
 };
 
+#[profiling::function]
 pub fn tile(x: u8, y: u8, starty: f32, state: &mut Data) {
     let tile = state.game.tiles()[y as usize][x as usize];
     let color = if let Some(tile) = tile {

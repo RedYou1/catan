@@ -26,19 +26,29 @@ pub enum Page {
     Reduce,
 }
 
-#[allow(clippy::needless_pass_by_value)]
-#[allow(clippy::too_many_lines)]
 #[macroquad::main(configure_window)]
 async fn main() {
+    let server_addr = format!("127.0.0.1:{}", puffin_http::DEFAULT_PORT);
+    let _puffin_server =
+        puffin_http::Server::new(&server_addr).expect("can't open server for profiling");
+
+    puffin::set_scopes_on(true);
+
     let mut state = Data::new();
     loop {
         clear_background(DARKGRAY);
 
-        match state.page {
-            Page::Main => game::game(&mut state),
-            Page::Reduce => reduce(&mut state),
-        }
+        update_frame(&mut state).await;
 
         next_frame().await;
+        profiling::finish_frame!();
+    }
+}
+
+#[profiling::function]
+async fn update_frame(state: &mut Data) {
+    match state.page {
+        Page::Main => game::game(state),
+        Page::Reduce => reduce(state),
     }
 }

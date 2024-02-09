@@ -18,5 +18,8 @@ too-many-lines = "deny"
 todo = "warn"
 
 [dependencies]
+profiling = { version = "=1.0.14", features = ["profile-with-puffin"] }
 catan_lib = { path = "../lib" }
 macroquad = "=0.4"
+puffin = "=0.19.0"
+puffin_http = "=0.16.0"

@@ -102,6 +102,7 @@ pub fn game(state: &mut Data) {
     }
 }
 
+#[profiling::function]
 pub fn choose_steal(state: &mut Data) {
     let mut ui = root_ui();
     let player_id = state.game.current_player_id();
