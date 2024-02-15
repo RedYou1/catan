@@ -1,10 +1,16 @@
 use super::building;
-use crate::{data::Data, player::Player};
+use crate::{
+    data::{Data, DataReturn},
+    player::Player,
+};
 use catan_lib::{
     game_manager::{self, Game},
     player::TPlayer,
 };
-use macroquad::{prelude::*, ui::root_ui};
+use macroquad::prelude::*;
+use macroquadstate::{
+    button::Button, fix_rect::FixRect, line::Line, offset::Offset, state::State, z_stack::ZStack,
+};
 
 #[profiling::function]
 fn can_place_vroad(x: u8, y: u8, state: &Data) -> bool {
@@ -24,17 +30,17 @@ fn can_place_vroad(x: u8, y: u8, state: &Data) -> bool {
 }
 
 #[profiling::function]
-pub fn vroad(x: u8, y: u8, starty: f32, state: &mut Data) {
+pub fn vroad(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> ZStack {
     let off = y % 2;
     buy_button(
         (x, y),
-        building::coords(x * 2 + off, y, starty),
-        building::coords(x * 2 + off, y + 1, starty),
+        building::coords(x * 2 + off, y),
+        building::coords(x * 2 + off, y + 1),
         state,
         can_place_vroad,
         Game::vroad,
-        Game::vroad_mut,
-    );
+        &Game::vroad_mut,
+    )
 }
 
 #[profiling::function]
@@ -60,16 +66,16 @@ fn can_place_hroad(x: u8, y: u8, state: &Data) -> bool {
 }
 
 #[profiling::function]
-pub fn hroad(x: u8, y: u8, starty: f32, state: &mut Data) {
+pub fn hroad(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> ZStack {
     buy_button(
         (x, y),
-        building::coords(x, y, starty),
-        building::coords(x + 1, y, starty),
+        building::coords(x, y),
+        building::coords(x + 1, y),
         state,
         can_place_hroad,
         Game::hroad,
-        Game::hroad_mut,
-    );
+        &Game::hroad_mut,
+    )
 }
 
 fn buy_button<
@@ -80,42 +86,50 @@ fn buy_button<
     road_coord: (u8, u8),
     coord_1: (f32, f32),
     coord_2: (f32, f32),
-    state: &mut Data,
+    state: &mut State<Data, DataReturn>,
     canplace: CanPlace,
     get: Get,
-    get_mut: GetMut,
-) {
-    if let Some(&player_id) = get(&mut state.game, road_coord.0, road_coord.1) {
-        draw_line(coord_1.0, coord_1.1, coord_2.0, coord_2.1, 15.0, BLACK);
-        draw_line(
-            coord_1.0,
-            coord_1.1,
-            coord_2.0,
-            coord_2.1,
-            10.0,
-            state.game.player(player_id).color(),
-        );
+    get_mut: &'static GetMut,
+) -> ZStack {
+    let game = &state.data().game;
+    if let Some(&player_id) = get(game, road_coord.0, road_coord.1) {
+        ZStack::new(vec![
+            Box::new(Line::new(
+                coord_1.0, coord_1.1, coord_2.0, coord_2.1, 15.0, BLACK,
+            )),
+            Box::new(Line::new(
+                coord_1.0,
+                coord_1.1,
+                coord_2.0,
+                coord_2.1,
+                10.0,
+                game.player(player_id).color(),
+            )),
+        ])
     } else {
-        let ressource = state.game.current_player().ressources();
-        if !state.debut.road_turn() && !ressource.can_buy(1, 0, 1, 0, 0) {
-            return;
+        let ressource = game.current_player().ressources();
+        if !state.data().debut.road_turn() && !ressource.can_buy(1, 0, 1, 0, 0) {
+            return ZStack::new(vec![]);
         }
-        if canplace(road_coord.0, road_coord.1, state) {
-            return;
+        if canplace(road_coord.0, road_coord.1, state.data()) {
+            return ZStack::new(vec![]);
         }
         let center_x = (coord_1.0 - coord_2.0) / 2.0 + coord_2.0;
         let center_y = (coord_1.1 - coord_2.1) / 2.0 + coord_2.1;
-        draw_rectangle(center_x - 7.5, center_y - 12.5, 15.0, 25.0, BLACK);
-        if !root_ui().button(
-            Vec2 {
-                x: center_x - 5.5,
-                y: center_y - 10.0,
-            },
-            " ",
-        ) {
-            return;
-        }
-        buy_road(road_coord.0, road_coord.1, get_mut, state);
+        ZStack::new(vec![
+            Box::new(Offset::new(
+                center_x - 7.5,
+                center_y - 12.5,
+                FixRect::new(15.0, 25.0, BLACK),
+            )),
+            Box::new(Offset::new(
+                center_x - 5.5,
+                center_y - 10.0,
+                Button::new(" ", state, move |data| {
+                    buy_road(road_coord.0, road_coord.1, get_mut, data);
+                }),
+            )),
+        ])
     }
 }
 
@@ -124,14 +138,13 @@ fn buy_road<GetMut: Fn(&mut Game<Player, 4>, u8, u8) -> &mut Option<u8>>(
     x: u8,
     y: u8,
     get_mut: GetMut,
-    state: &mut Data,
+    data: &mut Data,
 ) {
-    *get_mut(&mut state.game, x, y) = Some(state.game.current_player_id());
-    if state.debut.road_turn() {
-        state.debut.place_road(&mut state.game);
+    *get_mut(&mut data.game, x, y) = Some(data.game.current_player_id());
+    if data.debut.road_turn() {
+        data.debut.place_road(&mut data.game);
     } else {
-        state
-            .game
+        data.game
             .current_player_mut()
             .ressources_mut()
             .buy(1, 0, 1, 0, 0);

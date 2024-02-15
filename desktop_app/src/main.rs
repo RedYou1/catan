@@ -2,8 +2,8 @@
 
 use data::Data;
 use macroquad::prelude::*;
-use page::game;
-use page::reduce::reduce;
+use macroquadstate::drawable::Drawable;
+use macroquadstate::state::State;
 
 mod data;
 mod draw;
@@ -34,21 +34,13 @@ async fn main() {
 
     puffin::set_scopes_on(true);
 
-    let mut state = Data::new();
+    let mut state = State::new(Data::new());
     loop {
         clear_background(DARKGRAY);
 
-        update_frame(&mut state).await;
+        state.draw(0.0, 0.0, screen_width(), screen_height());
 
         next_frame().await;
         profiling::finish_frame!();
-    }
-}
-
-#[profiling::function]
-async fn update_frame(state: &mut Data) {
-    match state.page {
-        Page::Main => game::game(state),
-        Page::Reduce => reduce(state),
     }
 }

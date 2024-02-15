@@ -1,7 +1,18 @@
 use catan_lib::{game_manager::Game, ressource_manager::RessourceManager};
 use macroquad::prelude::*;
+use macroquadstate::{
+    center::Center,
+    range::Range,
+    state::{DrawableState, State},
+    v_stack::VStack,
+};
 
-use crate::{player::Player, starting::Starting, Page};
+use crate::{
+    page::{game, reduce::reduce},
+    player::Player,
+    starting::Starting,
+    Page,
+};
 
 #[derive(PartialEq)]
 pub enum Thief {
@@ -9,6 +20,10 @@ pub enum Thief {
     Waiting,
     Choosing,
 }
+
+#[allow(clippy::module_name_repetitions)]
+pub type DataReturn = Center<VStack>;
+#[deny(clippy::module_name_repetitions)]
 
 pub struct Data {
     pub game: Game<Player, 4>,
@@ -38,5 +53,30 @@ impl Data {
             debut: Starting::new(),
             thief: Thief::None,
         }
+    }
+}
+
+impl DrawableState<DataReturn> for Data {
+    fn state_width(&self) -> Range {
+        let w = screen_width();
+        Range {
+            min: w,
+            max: Some(w),
+        }
+    }
+
+    fn state_height(&self) -> Range {
+        let h = screen_height();
+        Range {
+            min: h,
+            max: Some(h),
+        }
+    }
+
+    fn gen_draw(state: &mut State<Data, DataReturn>) -> DataReturn {
+        Center::new(match state.data().page {
+            Page::Main => game::game(state),
+            Page::Reduce => reduce(state),
+        })
     }
 }
