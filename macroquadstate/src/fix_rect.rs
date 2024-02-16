@@ -18,6 +18,7 @@ impl FixRect {
     }
 }
 
+#[profiling::all_functions]
 impl Drawable for FixRect {
     fn width(&self) -> Range {
         Range {

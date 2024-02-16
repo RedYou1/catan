@@ -25,6 +25,7 @@ use crate::{
     Page,
 };
 
+#[profiling::function]
 pub fn game(state: &mut State<Data, DataReturn>) -> VStack {
     let data = state.data();
     let current_player = data.game.current_player();

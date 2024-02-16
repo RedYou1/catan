@@ -11,6 +11,7 @@ impl Space {
     }
 }
 
+#[profiling::all_functions]
 impl Drawable for Space {
     fn width(&self) -> Range {
         Range {

@@ -24,6 +24,7 @@ impl Line {
     }
 }
 
+#[profiling::all_functions]
 impl Drawable for Line {
     fn width(&self) -> Range {
         let w = (self.x2 - self.x1).abs();

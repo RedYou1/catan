@@ -18,6 +18,7 @@ impl Fill {
     }
 }
 
+#[profiling::all_functions]
 impl Drawable for Fill {
     fn width(&self) -> Range {
         Range {

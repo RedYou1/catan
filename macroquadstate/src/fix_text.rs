@@ -6,39 +6,52 @@ pub struct FixText {
     text: String,
     font: u16,
     color: Color,
+    width: Range,
+    height: Range,
 }
 
 impl FixText {
     pub fn new(text: String, font: u16, color: Color) -> Self {
-        Self { text, font, color }
+        let center = get_text_center(text.as_str(), None, font, 1.0, 0.0);
+        let width = {
+            let x = center.x * 2.0;
+            Range {
+                min: x,
+                max: Some(x),
+            }
+        };
+        let height = {
+            let y = center.y * -2.0;
+            Range {
+                min: y,
+                max: Some(y),
+            }
+        };
+        Self {
+            text,
+            font,
+            color,
+            width,
+            height,
+        }
     }
 }
 
+#[profiling::all_functions]
 impl Drawable for FixText {
     fn width(&self) -> Range {
-        let center = get_text_center(self.text.as_str(), None, self.font, 1.0, 0.0);
-        let x = center.x * 2.0;
-        Range {
-            min: x,
-            max: Some(x),
-        }
+        self.width.clone()
     }
 
     fn height(&self) -> Range {
-        let center = get_text_center(self.text.as_str(), None, self.font, 1.0, 0.0);
-        let y = center.y * -2.0;
-        Range {
-            min: y,
-            max: Some(y),
-        }
+        self.height.clone()
     }
 
     fn draw(&mut self, x: f32, y: f32, _: f32, _: f32) {
-        let center = get_text_center(self.text.as_str(), None, self.font, 1.0, 0.0);
         draw_text(
             self.text.as_str(),
             x,
-            y + center.y * -2.0,
+            y + self.height.min,
             f32::from(self.font),
             self.color,
         )

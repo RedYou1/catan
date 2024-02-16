@@ -13,6 +13,7 @@ impl FixCircle {
     }
 }
 
+#[profiling::all_functions]
 impl Drawable for FixCircle {
     fn width(&self) -> Range {
         Range {

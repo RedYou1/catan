@@ -13,6 +13,7 @@ impl FixHex {
     }
 }
 
+#[profiling::all_functions]
 impl Drawable for FixHex {
     fn width(&self) -> Range {
         Range {

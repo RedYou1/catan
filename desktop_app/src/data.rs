@@ -56,6 +56,7 @@ impl Data {
     }
 }
 
+#[profiling::all_functions]
 impl DrawableState<DataReturn> for Data {
     fn state_width(&self) -> Range {
         let w = screen_width();

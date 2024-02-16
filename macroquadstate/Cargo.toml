@@ -18,4 +18,5 @@ too-many-lines = "deny"
 todo = "warn"
 
 [dependencies]
+profiling = "=1.0.14"
 macroquad = "=0.4.4"

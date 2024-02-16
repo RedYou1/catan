@@ -10,6 +10,7 @@ use crate::{
     Page,
 };
 
+#[profiling::function]
 pub fn reduce(state: &mut State<Data, DataReturn>) -> VStack {
     let data = state.data();
     let max_amount = data.game.max_ressource();

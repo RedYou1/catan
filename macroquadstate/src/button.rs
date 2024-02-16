@@ -21,6 +21,7 @@ impl<'a, Data: DrawableState<DataReturn>, DataReturn: Drawable, Func: FnMut(&mut
     }
 }
 
+#[profiling::all_functions]
 impl<'a, Data: DrawableState<DataReturn>, DataReturn: Drawable, Func: FnMut(&mut Data)> Drawable
     for Button<'a, Data, DataReturn, Func>
 {

@@ -10,6 +10,7 @@ impl<T: Drawable> CenterV<T> {
     }
 }
 
+#[profiling::all_functions]
 impl<T: Drawable> Drawable for CenterV<T> {
     fn width(&self) -> Range {
         self.element.width()
@@ -44,6 +45,7 @@ impl<T: Drawable> CenterH<T> {
     }
 }
 
+#[profiling::all_functions]
 impl<T: Drawable> Drawable for CenterH<T> {
     fn width(&self) -> Range {
         Range {
@@ -78,6 +80,7 @@ impl<T: Drawable> Center<T> {
     }
 }
 
+#[profiling::all_functions]
 impl<T: Drawable> Drawable for Center<T> {
     fn width(&self) -> Range {
         Range {

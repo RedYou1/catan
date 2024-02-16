@@ -28,12 +28,14 @@ impl<K: DrawableState<V>, V: Drawable> State<K, V> {
         &self.data
     }
 
+    #[profiling::function]
     pub fn mutate<Func: FnMut(&mut K)>(&mut self, func: &mut Func) {
         func(&mut self.data);
         self.to_redraw = true;
     }
 }
 
+#[profiling::all_functions]
 impl<K: DrawableState<V>, V: Drawable> Drawable for State<K, V> {
     fn width(&self) -> Range {
         self.data.state_width()
@@ -45,6 +47,7 @@ impl<K: DrawableState<V>, V: Drawable> Drawable for State<K, V> {
 
     fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
         if self.to_redraw {
+            self.to_redraw = false;
             self.draw = Some(K::gen_draw(self));
         }
         self.draw.as_mut().expect("error").draw(x, y, width, height);

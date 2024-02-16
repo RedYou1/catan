@@ -6,59 +6,64 @@ where
     Self: Sized,
 {
     elements: Vec<Box<dyn Drawable>>,
+    width: Range,
+    height: Range,
 }
 
 impl ZStack {
     pub fn new(elements: Vec<Box<dyn Drawable>>) -> Self {
-        Self { elements }
-    }
-}
-
-impl Drawable for ZStack {
-    fn width(&self) -> Range {
-        if self.elements.is_empty() {
+        let width = if elements.is_empty() {
             Range {
                 min: 0.0,
                 max: Some(0.0),
             }
         } else {
             Range {
-                min: self
-                    .elements
+                min: elements
                     .iter()
                     .map(|e| e.width().min)
                     .max_by(|x, y| x.partial_cmp(&y).unwrap())
                     .expect("no element"),
-                max: self
-                    .elements
+                max: elements
                     .iter()
                     .filter_map(|e: &Box<dyn Drawable>| e.width().max)
                     .max_by(|x, y| x.partial_cmp(&y).unwrap()),
             }
-        }
-    }
-
-    fn height(&self) -> Range {
-        if self.elements.is_empty() {
+        };
+        let height = if elements.is_empty() {
             Range {
                 min: 0.0,
                 max: Some(0.0),
             }
         } else {
             Range {
-                min: self
-                    .elements
+                min: elements
                     .iter()
                     .map(|e| e.height().min)
                     .max_by(|x, y| x.partial_cmp(&y).unwrap())
                     .expect("no element"),
-                max: self
-                    .elements
+                max: elements
                     .iter()
                     .filter_map(|e: &Box<dyn Drawable>| e.height().max)
                     .max_by(|x, y| x.partial_cmp(&y).unwrap()),
             }
+        };
+        Self {
+            elements,
+            width,
+            height,
         }
+    }
+}
+
+#[profiling::all_functions]
+impl Drawable for ZStack {
+    fn width(&self) -> Range {
+        self.width.clone()
+    }
+
+    fn height(&self) -> Range {
+        self.height.clone()
     }
 
     fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {

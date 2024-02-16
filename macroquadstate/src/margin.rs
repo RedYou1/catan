@@ -30,6 +30,7 @@ impl<T: Drawable> Margin<T> {
     }
 }
 
+#[profiling::all_functions]
 impl<T: Drawable> Drawable for Margin<T> {
     fn width(&self) -> Range {
         let w = self.element.width();

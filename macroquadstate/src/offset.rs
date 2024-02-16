@@ -12,6 +12,7 @@ impl<T: Drawable> Offset<T> {
     }
 }
 
+#[profiling::all_functions]
 impl<T: Drawable> Drawable for Offset<T> {
     fn width(&self) -> Range {
         let mut w = self.element.width();
