@@ -147,7 +147,8 @@ pub fn choose_steal(state: &mut State<Data, DataReturn>) -> HStack {
 }
 
 pub fn draw_map(state: &mut State<Data, DataReturn>) -> ZStack {
-    let mut r = Vec::<Box<dyn Drawable>>::with_capacity(145);
+    let mut r = Vec::<Box<dyn Drawable>>::with_capacity(146);
+    r.push(Box::new(Space::new(500.0, 440.0)));
     for y in 0..5 {
         for x in 0..5 {
             if (x == 0 || x == 4) && (y == 0 || y == 4) {
@@ -157,18 +158,6 @@ pub fn draw_map(state: &mut State<Data, DataReturn>) -> ZStack {
                 continue;
             }
             r.push(Box::new(tile::tile(x, y, state)));
-        }
-    }
-
-    for y in 0..6 {
-        for x in 0..11 {
-            if (y == 0 || y == 5) && (x <= 1 || x >= 9) {
-                continue;
-            }
-            if (y == 1 || y == 4) && (x == 0 || x == 10) {
-                continue;
-            }
-            r.push(Box::new(building(x, y, state)));
         }
     }
 
@@ -195,6 +184,18 @@ pub fn draw_map(state: &mut State<Data, DataReturn>) -> ZStack {
             r.push(Box::new(hroad(x, y, state)));
         }
     }
-    assert_eq!(r.len(), 145);
+
+    for y in 0..6 {
+        for x in 0..11 {
+            if (y == 0 || y == 5) && (x <= 1 || x >= 9) {
+                continue;
+            }
+            if (y == 1 || y == 4) && (x == 0 || x == 10) {
+                continue;
+            }
+            r.push(Box::new(building(x, y, state)));
+        }
+    }
+    assert_eq!(r.len(), 146);
     ZStack::new(r)
 }
