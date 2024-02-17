@@ -80,3 +80,10 @@ impl Drawable for ZStack {
         }
     }
 }
+
+#[macro_export]
+macro_rules! zstack {
+    [$($element:expr),* $(,)?] => {
+        ZStack::new(vec![$(Box::new($element)),*])
+    };
+}

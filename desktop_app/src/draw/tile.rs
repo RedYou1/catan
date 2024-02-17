@@ -1,17 +1,7 @@
 use catan_lib::ressource::Ressource;
 use macroquad::prelude::*;
 use macroquadstate::{
-    button::Button,
-    center::{Center, CenterH},
-    fix_hex::FixHex,
-    fix_rect::FixRect,
-    fix_text::FixText,
-    margin::Margin,
-    offset::Offset,
-    space::Space,
-    state::State,
-    v_stack::VStack,
-    z_stack::ZStack,
+    button::Button, center::{Center, CenterH}, fix_hex::FixHex, fix_rect::FixRect, fix_text::FixText, margin::Margin, offset::Offset, space::Space, state::State, v_stack::VStack, vstack, z_stack::ZStack
 };
 
 use crate::{
@@ -46,9 +36,9 @@ pub fn tile(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Offset<ZStack>
         center_y,
         ZStack::new(vec![
             Box::new(FixHex::new(HEX_SIZE, color)),
-            Box::new(Center::new(VStack::new(if let Some(tile) = tile {
-                vec![
-                    Box::new(CenterH::new(Margin::new(
+            Box::new(Center::new(if let Some(tile) = tile {
+                vstack![
+                    CenterH::new(Margin::new(
                         FixText::new(
                             tile.dice_id().to_string(),
                             25,
@@ -62,8 +52,8 @@ pub fn tile(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Offset<ZStack>
                         0.0,
                         0.0,
                         5.0,
-                    ))),
-                    Box::new(CenterH::new(Margin::new(
+                    )),
+                    CenterH::new(Margin::new(
                         FixText::new(
                             str::repeat(
                                 "*",
@@ -81,11 +71,11 @@ pub fn tile(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Offset<ZStack>
                         0.0,
                         0.0,
                         5.0,
-                    ))),
+                    ))
                 ]
             } else {
-                vec![Box::new(Space::new(0.0, 0.0))]
-            }))),
+                vstack![]
+            })),
             if *state.data().game.thief() == (x, y) {
                 Box::new(Center::new(FixRect::new(HEX_SIZE, HEX_SIZE, BLACK)))
             } else if state.data().thief == Thief::Waiting {

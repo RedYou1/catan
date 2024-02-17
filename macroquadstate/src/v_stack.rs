@@ -100,3 +100,10 @@ impl Drawable for VStack {
         }
     }
 }
+
+#[macro_export]
+macro_rules! vstack {
+    [$($element:expr),* $(,)?] => {
+        VStack::new(vec![$(Box::new($element)),*])
+    };
+}

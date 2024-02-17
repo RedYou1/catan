@@ -8,10 +8,12 @@ use macroquadstate::{
     drawable::Drawable,
     fix_text::FixText,
     h_stack::HStack,
+    hstack,
     margin::Margin,
     space::Space,
     state::State,
     v_stack::VStack,
+    vstack,
     z_stack::ZStack,
 };
 
@@ -79,13 +81,13 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack {
         Box::new(CenterH::new(Margin::news(draw_map(state), 10.0))),
         match to_choose {
             (1, _, _) => Box::new(CenterH::new(choose_steal(state))),
-            (2, a, b) => Box::new(CenterH::new(VStack::new(vec![
-                Box::new(CenterH::new(FixText::new(format!("{a} {b}"), 25, WHITE))),
-                Box::new(CenterH::new(Button::new("Next", state, |data| {
+            (2, a, b) => Box::new(CenterH::new(vstack![
+                CenterH::new(FixText::new(format!("{a} {b}"), 25, WHITE)),
+                CenterH::new(Button::new("Next", state, |data| {
                     data.game.next_player();
                     data.dices = None;
-                }))),
-            ]))),
+                }))
+            ])),
             (3, _, _) => Box::new(CenterH::new(Button::new("Dice", state, |data| {
                 let (a, b) = data.game.throw_dice();
                 data.dices = Some((a, b));
@@ -124,13 +126,13 @@ pub fn choose_steal(state: &mut State<Data, DataReturn>) -> HStack {
         state.mutate(&mut |data| {
             data.thief = Thief::None;
         });
-        HStack::new(vec![])
+        hstack![]
     } else if players.len() == 1 {
         state.mutate(&mut |data| {
             data.game.steal(players[0].0, player_id);
             data.thief = Thief::None;
         });
-        HStack::new(vec![])
+        hstack![]
     } else {
         HStack::new(
             players

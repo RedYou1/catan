@@ -100,3 +100,10 @@ impl Drawable for HStack {
         }
     }
 }
+
+#[macro_export]
+macro_rules! hstack {
+    [$($element:expr),* $(,)?] => {
+        HStack::new(vec![$(Box::new($element)),*])
+    };
+}

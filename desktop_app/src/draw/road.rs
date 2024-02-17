@@ -10,6 +10,7 @@ use catan_lib::{
 use macroquad::prelude::*;
 use macroquadstate::{
     button::Button, fix_rect::FixRect, line::Line, offset::Offset, state::State, z_stack::ZStack,
+    zstack,
 };
 
 #[profiling::function]
@@ -93,43 +94,41 @@ fn buy_button<
 ) -> ZStack {
     let game = &state.data().game;
     if let Some(&player_id) = get(game, road_coord.0, road_coord.1) {
-        ZStack::new(vec![
-            Box::new(Line::new(
-                coord_1.0, coord_1.1, coord_2.0, coord_2.1, 15.0, BLACK,
-            )),
-            Box::new(Line::new(
+        zstack![
+            Line::new(coord_1.0, coord_1.1, coord_2.0, coord_2.1, 15.0, BLACK),
+            Line::new(
                 coord_1.0,
                 coord_1.1,
                 coord_2.0,
                 coord_2.1,
                 10.0,
                 game.player(player_id).color(),
-            )),
-        ])
+            )
+        ]
     } else {
         let ressource = game.current_player().ressources();
         if !state.data().debut.road_turn() && !ressource.can_buy(1, 0, 1, 0, 0) {
-            return ZStack::new(vec![]);
+            return zstack![];
         }
         if canplace(road_coord.0, road_coord.1, state.data()) {
-            return ZStack::new(vec![]);
+            return zstack![];
         }
         let center_x = (coord_1.0 - coord_2.0) / 2.0 + coord_2.0;
         let center_y = (coord_1.1 - coord_2.1) / 2.0 + coord_2.1;
-        ZStack::new(vec![
-            Box::new(Offset::new(
+        zstack![
+            Offset::new(
                 center_x - 7.5,
                 center_y - 12.5,
                 FixRect::new(15.0, 25.0, BLACK),
-            )),
-            Box::new(Offset::new(
+            ),
+            Offset::new(
                 center_x - 5.5,
                 center_y - 10.0,
                 Button::new(" ", state, move |data| {
                     buy_road(road_coord.0, road_coord.1, get_mut, data);
                 }),
-            )),
-        ])
+            )
+        ]
     }
 }
 
