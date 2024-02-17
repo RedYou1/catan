@@ -1,17 +1,17 @@
 use crate::{drawable::Drawable, range::Range};
 use macroquad::prelude::*;
 
-pub struct VStack
+pub struct VStack<const LEN: usize>
 where
     Self: Sized,
 {
-    elements: Vec<Box<dyn Drawable>>,
+    elements: [Box<dyn Drawable>; LEN],
     width: Range,
     height: Range,
 }
 
-impl VStack {
-    pub fn new(elements: Vec<Box<dyn Drawable>>) -> Self {
+impl<const LEN: usize> VStack<LEN> {
+    pub fn new(elements: [Box<dyn Drawable>; LEN]) -> Self {
         let width = if elements.is_empty() {
             Range {
                 min: 0.0,
@@ -62,7 +62,7 @@ impl VStack {
 }
 
 #[profiling::all_functions]
-impl Drawable for VStack {
+impl<const LEN: usize> Drawable for VStack<LEN> {
     fn width(&self) -> Range {
         self.width.clone()
     }
@@ -82,7 +82,7 @@ impl Drawable for VStack {
             .filter(|e| e.max.unwrap_or(f32::MAX) != e.min)
             .count();
         let diff = if c == 0 { 0.0 } else { diff / c as f32 };
-        for e in self.elements.iter_mut() {
+        for e in &mut self.elements {
             let r = e.as_mut();
             let rw = r.width();
             let height = r.height();
@@ -104,6 +104,6 @@ impl Drawable for VStack {
 #[macro_export]
 macro_rules! vstack {
     [$($element:expr),* $(,)?] => {
-        VStack::new(vec![$(Box::new($element)),*])
+        VStack::new([$(Box::new($element)),*])
     };
 }

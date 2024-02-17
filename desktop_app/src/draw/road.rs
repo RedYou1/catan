@@ -31,7 +31,7 @@ fn can_place_vroad(x: u8, y: u8, state: &Data) -> bool {
 }
 
 #[profiling::function]
-pub fn vroad(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> ZStack {
+pub fn vroad(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Option<ZStack<2>> {
     let off = y % 2;
     buy_button(
         (x, y),
@@ -67,7 +67,7 @@ fn can_place_hroad(x: u8, y: u8, state: &Data) -> bool {
 }
 
 #[profiling::function]
-pub fn hroad(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> ZStack {
+pub fn hroad(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Option<ZStack<2>> {
     buy_button(
         (x, y),
         building::coords(x, y),
@@ -91,10 +91,10 @@ fn buy_button<
     canplace: CanPlace,
     get: Get,
     get_mut: &'static GetMut,
-) -> ZStack {
+) -> Option<ZStack<2>> {
     let game = &state.data().game;
     if let Some(&player_id) = get(game, road_coord.0, road_coord.1) {
-        zstack![
+        Some(zstack![
             Line::new(coord_1.0, coord_1.1, coord_2.0, coord_2.1, 15.0, BLACK),
             Line::new(
                 coord_1.0,
@@ -104,18 +104,18 @@ fn buy_button<
                 10.0,
                 game.player(player_id).color(),
             )
-        ]
+        ])
     } else {
         let ressource = game.current_player().ressources();
         if !state.data().debut.road_turn() && !ressource.can_buy(1, 0, 1, 0, 0) {
-            return zstack![];
+            return None;
         }
         if canplace(road_coord.0, road_coord.1, state.data()) {
-            return zstack![];
+            return None;
         }
         let center_x = (coord_1.0 - coord_2.0) / 2.0 + coord_2.0;
         let center_y = (coord_1.1 - coord_2.1) / 2.0 + coord_2.1;
-        zstack![
+        Some(zstack![
             Offset::new(
                 center_x - 7.5,
                 center_y - 12.5,
@@ -128,7 +128,7 @@ fn buy_button<
                     buy_road(road_coord.0, road_coord.1, get_mut, data);
                 }),
             )
-        ]
+        ])
     }
 }
 

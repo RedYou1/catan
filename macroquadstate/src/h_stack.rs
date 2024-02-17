@@ -1,17 +1,17 @@
 use crate::{drawable::Drawable, range::Range};
 use macroquad::prelude::*;
 
-pub struct HStack
+pub struct HStack<const LEN: usize>
 where
     Self: Sized,
 {
-    elements: Vec<Box<dyn Drawable>>,
+    elements: [Box<dyn Drawable>; LEN],
     width: Range,
     height: Range,
 }
 
-impl HStack {
-    pub fn new(elements: Vec<Box<dyn Drawable>>) -> Self {
+impl<const LEN: usize> HStack<LEN> {
+    pub fn new(elements: [Box<dyn Drawable>;LEN]) -> Self {
         let width = if elements.is_empty() {
             Range {
                 min: 0.0,
@@ -62,7 +62,7 @@ impl HStack {
 }
 
 #[profiling::all_functions]
-impl Drawable for HStack {
+impl<const LEN: usize> Drawable for HStack<LEN> {
     fn width(&self) -> Range {
         self.width.clone()
     }
@@ -82,7 +82,7 @@ impl Drawable for HStack {
             .filter(|e| e.max.unwrap_or(f32::MAX) != e.min)
             .count();
         let diff = diff / c as f32;
-        for e in self.elements.iter_mut() {
+        for e in &mut self.elements {
             let r = e.as_mut();
             let rh = r.height();
             let width = r.width();
@@ -104,6 +104,6 @@ impl Drawable for HStack {
 #[macro_export]
 macro_rules! hstack {
     [$($element:expr),* $(,)?] => {
-        HStack::new(vec![$(Box::new($element)),*])
+        HStack::new([$(Box::new($element)),*])
     };
 }

@@ -2,9 +2,10 @@ use catan_lib::{game_manager::Game, ressource_manager::RessourceManager};
 use macroquad::prelude::*;
 use macroquadstate::{
     center::Center,
+    empty::Empty,
     range::Range,
     state::{DrawableState, State},
-    v_stack::VStack,
+    wrapper::Wrapper,
 };
 
 use crate::{
@@ -22,7 +23,7 @@ pub enum Thief {
 }
 
 #[allow(clippy::module_name_repetitions)]
-pub type DataReturn = Center<VStack>;
+pub type DataReturn = Wrapper;
 #[deny(clippy::module_name_repetitions)]
 
 pub struct Data {
@@ -75,9 +76,15 @@ impl DrawableState<DataReturn> for Data {
     }
 
     fn gen_draw(state: &mut State<Data, DataReturn>) -> DataReturn {
-        Center::new(match state.data().page {
-            Page::Main => game::game(state),
-            Page::Reduce => reduce(state),
-        })
+        match state.data().page {
+            Page::Main => Wrapper::new(Center::new(game::game(state))),
+            Page::Reduce => {
+                if let Some(reduce) = reduce(state) {
+                    Wrapper::new(Center::new(reduce))
+                } else {
+                    Wrapper::new(Empty::new())
+                }
+            }
+        }
     }
 }

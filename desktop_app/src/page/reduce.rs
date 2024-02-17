@@ -2,7 +2,7 @@ use catan_lib::{player::TPlayer, ressource::Ressource, ressource_manager::Ressou
 use macroquad::prelude::*;
 use macroquadstate::{
     button::Button, center::CenterH, drawable::Drawable, fix_text::FixText, h_stack::HStack,
-    hstack, margin::Margin, space::Space, state::State, v_stack::VStack, vstack,
+    hstack, margin::Margin, space::Space, state::State, v_stack::VStack,
 };
 
 use crate::{
@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[profiling::function]
-pub fn reduce(state: &mut State<Data, DataReturn>) -> VStack {
+pub fn reduce(state: &mut State<Data, DataReturn>) -> Option<VStack<4>> {
     let data = state.data();
     let max_amount = data.game.max_ressource();
     let Some((i, player)) = data
@@ -24,11 +24,11 @@ pub fn reduce(state: &mut State<Data, DataReturn>) -> VStack {
         state.mutate(&mut |data| {
             data.page = Page::Main;
         });
-        return vstack![];
+        return None;
     };
     let can_reduce = data.to_reduce.amounts() == max_amount;
 
-    VStack::new(vec![
+    Some(VStack::new([
         Box::new(CenterH::new(Margin::news(
             FixText::new(format!("Player to reduce {}", player.name()), 25, WHITE),
             25.0,
@@ -88,10 +88,10 @@ pub fn reduce(state: &mut State<Data, DataReturn>) -> VStack {
         } else {
             Box::new(Space::new(10.0, 10.0))
         },
-    ])
+    ]))
 }
 
-fn edit_row(max_amount: u8, player_id: u8, state: &mut State<Data, DataReturn>) -> HStack {
+fn edit_row(max_amount: u8, player_id: u8, state: &mut State<Data, DataReturn>) -> HStack<5> {
     HStack::new(
         [
             Ressource::Tree,
@@ -106,7 +106,7 @@ fn edit_row(max_amount: u8, player_id: u8, state: &mut State<Data, DataReturn>) 
             let player = data.game.player(player_id);
             let current_reduce = data.to_reduce.get(ressource);
             Box::new(Margin::news(
-                VStack::new(vec![
+                VStack::new([
                     if player.ressources().get(ressource) > current_reduce
                         && data.to_reduce.amounts() < max_amount
                     {
@@ -126,11 +126,14 @@ fn edit_row(max_amount: u8, player_id: u8, state: &mut State<Data, DataReturn>) 
                         })))
                     } else {
                         Box::new(Space::new(10.0, 10.0))
-                    }, 
+                    },
                 ]),
                 5.0,
             )) as Box<dyn Drawable>
         })
-        .collect(),
+        .collect::<Vec<Box<dyn Drawable>>>()
+        .try_into()
+        .ok()
+        .expect("don't contait 5 element"),
     )
 }

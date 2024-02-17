@@ -1,7 +1,18 @@
 use catan_lib::ressource::Ressource;
 use macroquad::prelude::*;
 use macroquadstate::{
-    button::Button, center::{Center, CenterH}, fix_hex::FixHex, fix_rect::FixRect, fix_text::FixText, margin::Margin, offset::Offset, space::Space, state::State, v_stack::VStack, vstack, z_stack::ZStack
+    button::Button,
+    center::{Center, CenterH},
+    empty::Empty,
+    fix_hex::FixHex,
+    fix_rect::FixRect,
+    fix_text::FixText,
+    margin::Margin,
+    offset::Offset,
+    state::State,
+    v_stack::VStack,
+    vstack,
+    z_stack::ZStack,
 };
 
 use crate::{
@@ -10,7 +21,7 @@ use crate::{
 };
 
 #[profiling::function]
-pub fn tile(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Offset<ZStack> {
+pub fn tile(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Offset<ZStack<3>> {
     let tile = state.data().game.tiles()[y as usize][x as usize];
     let color = if let Some(tile) = tile {
         match tile.ressource() {
@@ -34,10 +45,10 @@ pub fn tile(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Offset<ZStack>
     Offset::new(
         center_x,
         center_y,
-        ZStack::new(vec![
+        ZStack::new([
             Box::new(FixHex::new(HEX_SIZE, color)),
-            Box::new(Center::new(if let Some(tile) = tile {
-                vstack![
+            if let Some(tile) = tile {
+                Box::new(Center::new(vstack![
                     CenterH::new(Margin::new(
                         FixText::new(
                             tile.dice_id().to_string(),
@@ -72,10 +83,10 @@ pub fn tile(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Offset<ZStack>
                         0.0,
                         5.0,
                     ))
-                ]
+                ]))
             } else {
-                vstack![]
-            })),
+                Box::new(Empty::new())
+            },
             if *state.data().game.thief() == (x, y) {
                 Box::new(Center::new(FixRect::new(HEX_SIZE, HEX_SIZE, BLACK)))
             } else if state.data().thief == Thief::Waiting {
@@ -84,7 +95,7 @@ pub fn tile(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Offset<ZStack>
                     *data.game.thief_mut() = (x, y);
                 })))
             } else {
-                Box::new(Space::new(0.0, 0.0))
+                Box::new(Empty::new())
             },
         ]),
     )

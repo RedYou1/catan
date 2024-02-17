@@ -1,7 +1,7 @@
 use catan_lib::{building::Building, game_manager, player::TPlayer};
 use macroquad::prelude::*;
 use macroquadstate::{
-    button::Button, fix_circle::FixCircle, fix_rect::FixRect, offset::Offset, space::Space,
+    button::Button, empty::Empty, fix_circle::FixCircle, fix_rect::FixRect, offset::Offset,
     state::State, z_stack::ZStack, zstack,
 };
 
@@ -22,13 +22,14 @@ pub fn coords(x: u8, y: u8) -> (f32, f32) {
 }
 
 #[profiling::function]
-pub fn building(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> ZStack {
+pub fn building(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Option<ZStack<3>> {
     let data = state.data();
     let current_playing = data.game.current_player_id();
     let (center_x, center_y) = coords(x, y);
 
     match data.game.building(x, y) {
-        Some((Building::BigHouse, player_id)) => zstack![
+        Some((Building::BigHouse, player_id)) => Some(zstack![
+            Empty::new(),
             Offset::new(
                 center_x - 15.0,
                 center_y - 15.0,
@@ -39,8 +40,8 @@ pub fn building(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> ZStack {
                 center_y - 12.5,
                 FixCircle::new(12.5, data.game.player(*player_id).color()),
             )
-        ],
-        Some(&(Building::LittleHouse, player_id)) => ZStack::new(vec![
+        ]),
+        Some(&(Building::LittleHouse, player_id)) => Some(ZStack::new([
             Box::new(Offset::new(
                 center_x - 10.0,
                 center_y - 15.0,
@@ -63,25 +64,26 @@ pub fn building(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> ZStack {
                             }),
                         ))
                     } else {
-                        Box::new(Space::new(0.0, 0.0))
+                        Box::new(Empty::new())
                     }
                 } else {
-                    Box::new(Space::new(0.0, 0.0))
+                    Box::new(Empty::new())
                 }
             },
-        ]),
+        ])),
         None => {
             let ressource = data.game.current_player().ressources();
             if !data.debut.building_turn() && !ressource.can_buy(1, 1, 1, 1, 0) {
-                return zstack![];
+                return None;
             }
             if can_place(x, y, current_playing, data) {
-                return zstack![];
+                return None;
             }
             if data.game.building_in_range(x, y) {
-                return zstack![];
+                return None;
             }
-            zstack![
+            Some(zstack![
+                Empty::new(),
                 Offset::new(
                     center_x - 7.5,
                     center_y - 12.5,
@@ -94,7 +96,7 @@ pub fn building(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> ZStack {
                         buy_none(x, y, data);
                     }),
                 )
-            ]
+            ])
         }
     }
 }

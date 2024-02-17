@@ -1,17 +1,17 @@
 use crate::{drawable::Drawable, range::Range};
 use macroquad::prelude::*;
 
-pub struct ZStack
+pub struct ZStack<const LEN: usize>
 where
     Self: Sized,
 {
-    elements: Vec<Box<dyn Drawable>>,
+    elements: [Box<dyn Drawable>; LEN],
     width: Range,
     height: Range,
 }
 
-impl ZStack {
-    pub fn new(elements: Vec<Box<dyn Drawable>>) -> Self {
+impl<const LEN: usize> ZStack<LEN> {
+    pub fn new(elements: [Box<dyn Drawable>; LEN]) -> Self {
         let width = if elements.is_empty() {
             Range {
                 min: 0.0,
@@ -57,7 +57,7 @@ impl ZStack {
 }
 
 #[profiling::all_functions]
-impl Drawable for ZStack {
+impl<const LEN: usize> Drawable for ZStack<LEN> {
     fn width(&self) -> Range {
         self.width.clone()
     }
@@ -67,7 +67,7 @@ impl Drawable for ZStack {
     }
 
     fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
-        for e in self.elements.iter_mut() {
+        for e in &mut self.elements {
             let r = e.as_mut();
             let w = r.width();
             let h = r.height();
@@ -84,6 +84,6 @@ impl Drawable for ZStack {
 #[macro_export]
 macro_rules! zstack {
     [$($element:expr),* $(,)?] => {
-        ZStack::new(vec![$(Box::new($element)),*])
+        ZStack::new([$(Box::new($element)),*])
     };
 }

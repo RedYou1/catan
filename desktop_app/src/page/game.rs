@@ -6,9 +6,9 @@ use macroquadstate::{
     button::Button,
     center::{CenterH, CenterV},
     drawable::Drawable,
+    empty::Empty,
     fix_text::FixText,
     h_stack::HStack,
-    hstack,
     margin::Margin,
     space::Space,
     state::State,
@@ -28,7 +28,7 @@ use crate::{
 };
 
 #[profiling::function]
-pub fn game(state: &mut State<Data, DataReturn>) -> VStack {
+pub fn game(state: &mut State<Data, DataReturn>) -> VStack<4> {
     let data = state.data();
     let current_player = data.game.current_player();
 
@@ -47,7 +47,7 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack {
             (3, 0, 0)
         }
     };
-    VStack::new(vec![
+    VStack::new([
         Box::new(CenterH::new(Margin::news(
             FixText::new(
                 format!("Player to play: {}", current_player.name()),
@@ -56,7 +56,7 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack {
             ),
             2.5,
         ))),
-        Box::new(CenterH::new(VStack::new(
+        Box::new(CenterH::new(VStack::<4>::new(
             data.game
                 .players()
                 .iter()
@@ -76,11 +76,20 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack {
                         2.0,
                     )) as Box<dyn Drawable>
                 })
-                .collect(),
+                .collect::<Vec<Box<dyn Drawable>>>()
+                .try_into()
+                .ok()
+                .expect("don't contait 4 element"),
         ))),
         Box::new(CenterH::new(Margin::news(draw_map(state), 10.0))),
         match to_choose {
-            (1, _, _) => Box::new(CenterH::new(choose_steal(state))),
+            (1, _, _) => {
+                if let Some(steel) = choose_steal(state) {
+                    Box::new(CenterH::new(steel))
+                } else {
+                    Box::new(Empty::new())
+                }
+            }
             (2, a, b) => Box::new(CenterH::new(vstack![
                 CenterH::new(FixText::new(format!("{a} {b}"), 25, WHITE)),
                 CenterH::new(Button::new("Next", state, |data| {
@@ -101,13 +110,13 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack {
                     data.page = Page::Reduce;
                 }
             }))),
-            _ => Box::new(Space::new(0.0, 0.0)),
+            _ => Box::new(Empty::new()),
         },
     ])
 }
 
 #[profiling::function]
-pub fn choose_steal(state: &mut State<Data, DataReturn>) -> HStack {
+pub fn choose_steal(state: &mut State<Data, DataReturn>) -> Option<HStack<4>> {
     let data = state.data();
     let player_id = data.game.current_player_id();
     let mut players: Vec<(u8, &'static str)> = Vec::with_capacity(data.game.players().len());
@@ -126,15 +135,15 @@ pub fn choose_steal(state: &mut State<Data, DataReturn>) -> HStack {
         state.mutate(&mut |data| {
             data.thief = Thief::None;
         });
-        hstack![]
+        None
     } else if players.len() == 1 {
         state.mutate(&mut |data| {
             data.game.steal(players[0].0, player_id);
             data.thief = Thief::None;
         });
-        hstack![]
+        None
     } else {
-        HStack::new(
+        Some(HStack::new(
             players
                 .iter()
                 .map(|&(player, pname)| {
@@ -143,12 +152,15 @@ pub fn choose_steal(state: &mut State<Data, DataReturn>) -> HStack {
                         data.thief = Thief::None;
                     }))) as Box<dyn Drawable>
                 })
-                .collect(),
-        )
+                .collect::<Vec<Box<dyn Drawable>>>()
+                .try_into()
+                .ok()
+                .expect("don't contait 4 element"),
+        ))
     }
 }
 
-pub fn draw_map(state: &mut State<Data, DataReturn>) -> ZStack {
+pub fn draw_map(state: &mut State<Data, DataReturn>) -> ZStack<146> {
     let mut r = Vec::<Box<dyn Drawable>>::with_capacity(146);
     r.push(Box::new(Space::new(500.0, 440.0)));
     for y in 0..5 {
@@ -171,7 +183,11 @@ pub fn draw_map(state: &mut State<Data, DataReturn>) -> ZStack {
             if (y == 1 || y == 3) && x == 5 {
                 continue;
             }
-            r.push(Box::new(vroad(x, y, state)));
+            r.push(if let Some(vroad) = vroad(x, y, state) {
+                Box::new(vroad)
+            } else {
+                Box::new(Empty::new())
+            });
         }
     }
 
@@ -183,7 +199,11 @@ pub fn draw_map(state: &mut State<Data, DataReturn>) -> ZStack {
             if (y == 1 || y == 4) && (x == 0 || x == 9) {
                 continue;
             }
-            r.push(Box::new(hroad(x, y, state)));
+            r.push(if let Some(hroad) = hroad(x, y, state) {
+                Box::new(hroad)
+            } else {
+                Box::new(Empty::new())
+            });
         }
     }
 
@@ -195,9 +215,12 @@ pub fn draw_map(state: &mut State<Data, DataReturn>) -> ZStack {
             if (y == 1 || y == 4) && (x == 0 || x == 10) {
                 continue;
             }
-            r.push(Box::new(building(x, y, state)));
+            r.push(if let Some(building) = building(x, y, state) {
+                Box::new(building)
+            } else {
+                Box::new(Empty::new())
+            });
         }
     }
-    assert_eq!(r.len(), 146);
-    ZStack::new(r)
+    ZStack::new(r.try_into().ok().expect("not 146 element"))
 }
