@@ -9,7 +9,8 @@ pub struct Fill {
 }
 
 impl Fill {
-    pub fn new(min_width: f32, min_height: f32, color: Color) -> Self {
+    
+    pub const fn new(min_width: f32, min_height: f32, color: Color) -> Self {
         Self {
             min_width,
             min_height,
@@ -35,6 +36,6 @@ impl Drawable for Fill {
     }
 
     fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
-        draw_rectangle(x, y, width, height, self.color)
+        draw_rectangle(x, y, width, height, self.color);
     }
 }

@@ -9,7 +9,8 @@ pub struct Margin<T: Drawable> {
 }
 
 impl<T: Drawable> Margin<T> {
-    pub fn new(element: T, left: f32, right: f32, top: f32, bottom: f32) -> Self {
+    
+    pub const fn new(element: T, left: f32, right: f32, top: f32, bottom: f32) -> Self {
         Self {
             element,
             left,
@@ -19,7 +20,8 @@ impl<T: Drawable> Margin<T> {
         }
     }
 
-    pub fn news(element: T, size: f32) -> Self {
+    
+    pub const fn news(element: T, size: f32) -> Self {
         Self {
             element,
             left: size,
@@ -52,6 +54,6 @@ impl<T: Drawable> Drawable for Margin<T> {
             y + self.top,
             width - self.left - self.right,
             height - self.top - self.bottom,
-        )
+        );
     }
 }

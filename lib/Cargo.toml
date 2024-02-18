@@ -16,6 +16,9 @@ get-unwrap = "deny"
 str-to-string = "deny"
 too-many-lines = "deny"
 todo = "warn"
+must-use-candidate = "allow"
+module-name-repetitions = "allow"
+similar-names = "allow"
 
 [dependencies]
 rand = "=0.8.5"

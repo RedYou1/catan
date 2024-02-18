@@ -16,7 +16,7 @@ pub struct State<K: DrawableState<V>, V: Drawable> {
 }
 
 impl<K: DrawableState<V>, V: Drawable> State<K, V> {
-    pub fn new(data: K) -> Self {
+    pub const fn new(data: K) -> Self {
         Self {
             data,
             to_redraw: true,
@@ -24,7 +24,7 @@ impl<K: DrawableState<V>, V: Drawable> State<K, V> {
         }
     }
 
-    pub fn data(&self) -> &K {
+    pub const fn data(&self) -> &K {
         &self.data
     }
 
@@ -50,6 +50,6 @@ impl<K: DrawableState<V>, V: Drawable> Drawable for State<K, V> {
             self.to_redraw = false;
             self.draw = Some(K::gen_draw(self));
         }
-        self.draw.as_mut().expect("error").draw(x, y, width, height);
+        self.draw.as_mut().expect("can't draw state").draw(x, y, width, height);
     }
 }

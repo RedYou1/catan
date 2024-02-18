@@ -26,6 +26,6 @@ impl Drawable for Wrapper {
     }
 
     fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
-        self.element.draw(x, y, width, height)
+        self.element.draw(x, y, width, height);
     }
 }

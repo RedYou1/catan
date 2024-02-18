@@ -11,6 +11,7 @@ where
 }
 
 impl<const LEN: usize> ZStack<LEN> {
+    #[allow(clippy::missing_panics_doc)]
     pub fn new(elements: [Box<dyn Drawable>; LEN]) -> Self {
         let width = if elements.is_empty() {
             Range {
@@ -22,12 +23,12 @@ impl<const LEN: usize> ZStack<LEN> {
                 min: elements
                     .iter()
                     .map(|e| e.width().min)
-                    .max_by(|x, y| x.partial_cmp(&y).unwrap())
-                    .expect("no element"),
+                    .max_by(|x, y| x.partial_cmp(y).expect(""))
+                    .expect(""),
                 max: elements
                     .iter()
-                    .filter_map(|e: &Box<dyn Drawable>| e.width().max)
-                    .max_by(|x, y| x.partial_cmp(&y).unwrap()),
+                    .filter_map(|e| e.width().max)
+                    .max_by(|x, y| x.partial_cmp(y).expect("")),
             }
         };
         let height = if elements.is_empty() {
@@ -40,12 +41,12 @@ impl<const LEN: usize> ZStack<LEN> {
                 min: elements
                     .iter()
                     .map(|e| e.height().min)
-                    .max_by(|x, y| x.partial_cmp(&y).unwrap())
-                    .expect("no element"),
+                    .max_by(|x, y| x.partial_cmp(y).expect(""))
+                    .expect(""),
                 max: elements
                     .iter()
-                    .filter_map(|e: &Box<dyn Drawable>| e.height().max)
-                    .max_by(|x, y| x.partial_cmp(&y).unwrap()),
+                    .filter_map(|e| e.height().max)
+                    .max_by(|x, y| x.partial_cmp(y).expect("")),
             }
         };
         Self {

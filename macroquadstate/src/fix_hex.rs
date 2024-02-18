@@ -8,7 +8,8 @@ pub struct FixHex {
 }
 
 impl FixHex {
-    pub fn new(radius: f32, color: Color) -> Self {
+    
+    pub const fn new(radius: f32, color: Color) -> Self {
         Self { radius, color }
     }
 }
@@ -38,6 +39,6 @@ impl Drawable for FixHex {
             true,
             BLANK,
             self.color,
-        )
+        );
     }
 }

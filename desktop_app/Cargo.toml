@@ -16,9 +16,11 @@ get-unwrap = "deny"
 str-to-string = "deny"
 too-many-lines = "deny"
 todo = "warn"
+must-use-candidate = "allow"
+module-name-repetitions = "allow"
 
 [dependencies]
-profiling = { version = "=1.0.14", features = ["profile-with-puffin"] }
+profiling = { version = "=1.0.15", features = ["profile-with-puffin"] }
 catan_lib = { path = "../lib" }
 macroquadstate = { path = "../macroquadstate" }
 macroquad = "=0.4.4"

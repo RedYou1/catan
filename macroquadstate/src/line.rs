@@ -12,7 +12,8 @@ pub struct Line {
 }
 
 impl Line {
-    pub fn new(x1: f32, y1: f32, x2: f32, y2: f32, thickness: f32, color: Color) -> Self {
+    
+    pub const fn new(x1: f32, y1: f32, x2: f32, y2: f32, thickness: f32, color: Color) -> Self {
         Self {
             x1,
             y1,
@@ -50,6 +51,6 @@ impl Drawable for Line {
             self.y2 + y,
             self.thickness,
             self.color,
-        )
+        );
     }
 }

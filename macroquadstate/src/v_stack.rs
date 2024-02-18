@@ -11,6 +11,7 @@ where
 }
 
 impl<const LEN: usize> VStack<LEN> {
+    #[allow(clippy::missing_panics_doc)]
     pub fn new(elements: [Box<dyn Drawable>; LEN]) -> Self {
         let width = if elements.is_empty() {
             Range {
@@ -26,14 +27,14 @@ impl<const LEN: usize> VStack<LEN> {
                 min: elements
                     .iter()
                     .map(|e| e.width().min)
-                    .max_by(|x, y| x.partial_cmp(&y).unwrap())
-                    .expect("no element"),
-                max: if elements.len() != max.len() {
-                    None
-                } else {
+                    .max_by(|x, y| x.partial_cmp(y).expect(""))
+                    .expect(""),
+                max: if elements.len() == max.len() {
                     max.iter()
-                        .max_by(|x, y| x.partial_cmp(&y).unwrap())
+                        .max_by(|x, y| x.partial_cmp(y).expect(""))
                         .copied()
+                } else {
+                    None
                 },
             }
         };
@@ -46,10 +47,10 @@ impl<const LEN: usize> VStack<LEN> {
             let max: Vec<f32> = elements.iter().filter_map(|e| e.height().max).collect();
             Range {
                 min: elements.iter().map(|e| e.height().min).sum(),
-                max: if max.len() != elements.len() {
-                    None
-                } else {
+                max: if max.len() == elements.len() {
                     Some(max.iter().sum())
+                } else {
+                    None
                 },
             }
         };
@@ -79,14 +80,15 @@ impl<const LEN: usize> Drawable for VStack<LEN> {
             .elements
             .iter()
             .map(|e| e.height())
-            .filter(|e| e.max.unwrap_or(f32::MAX) != e.min)
+            .filter(|e| !e.fix_sized())
             .count();
+        #[allow(clippy::cast_precision_loss)]
         let diff = if c == 0 { 0.0 } else { diff / c as f32 };
         for e in &mut self.elements {
             let r = e.as_mut();
             let rw = r.width();
             let height = r.height();
-            let ok = height.max.unwrap_or(f32::MAX) != height.min;
+            let ok = !height.fix_sized();
             r.draw(
                 x,
                 y,

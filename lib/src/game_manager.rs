@@ -38,8 +38,10 @@ impl<Player: TPlayer + Default + Copy, const PLAYERS_COUNT: usize> Default
 }
 
 impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
+    #[allow(clippy::missing_panics_doc)]
     pub fn new(max_ressource: u8, players: [Player; PLAYERS_COUNT]) -> Option<Self> {
-        assert!(PLAYERS_COUNT < u8::MAX as usize * 4);
+        assert!(PLAYERS_COUNT < u8::MAX as usize);
+        assert!(PLAYERS_COUNT > 1);
         let mut dices = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
         let mut rng = rand::thread_rng();
         dices.shuffle(&mut rng);
@@ -68,7 +70,7 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
         tiles.shuffle(&mut rng);
         let mut dessert_id = 0;
         for (i, item) in tiles.iter().enumerate() {
-            if let None = item {
+            if item.is_none() {
                 dessert_id = i;
                 break;
             }
@@ -111,7 +113,7 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
             building: [[None; 11]; 6],
             vroad: [[None; 6]; 5],
             hroad: [[None; 10]; 6],
-            to_play: rng.gen_range(0..PLAYERS_COUNT) as u8,
+            to_play: u8::try_from(rng.gen_range(0..PLAYERS_COUNT)).expect("random out of bound"),
             thief: match dessert_id {
                 0 => (1, 0),
                 1 => (2, 0),
@@ -137,6 +139,7 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
         })
     }
 
+    #[allow(clippy::missing_panics_doc)]
     pub fn throw_dice(&mut self) -> (u8, u8) {
         let mut rng = rand::thread_rng();
         let dice_1: u8 = rng.gen_range(1..=6);
@@ -158,7 +161,9 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
                     continue;
                 }
 
-                for (bx, by) in building_around_tile(x as u8, y as u8) {
+                for (bx, by) in
+                    building_around_tile(u8::try_from(x).expect(""), u8::try_from(y).expect(""))
+                {
                     let Some(building) = self.building[by as usize][bx as usize] else {
                         continue;
                     };
@@ -203,9 +208,10 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
             self.to_play = 0;
         }
     }
+    #[allow(clippy::missing_panics_doc)]
     pub fn prev_player(&mut self) {
         if self.to_play == 0 {
-            self.to_play = (PLAYERS_COUNT - 1) as u8;
+            self.to_play = u8::try_from(PLAYERS_COUNT - 1).expect("");
         } else {
             self.to_play -= 1;
         }
@@ -258,7 +264,9 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
     pub fn thief_mut(&mut self) -> &mut (u8, u8) {
         &mut self.thief
     }
-
+    
+    #[allow(clippy::similar_names)]
+    #[allow(clippy::missing_panics_doc)]
     pub fn update_longuest_road(&mut self, x: u8, y: u8, is_vertical: bool, player_id: u8) {
         //TODO enemy's houses can broke the road?
         let mut score = 0;
@@ -326,7 +334,7 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
     }
 }
 
-pub fn building_around_tile(x: u8, y: u8) -> [(u8, u8); 6] {
+pub const fn building_around_tile(x: u8, y: u8) -> [(u8, u8); 6] {
     let x = x * 2 + (y % 2);
     [
         (x, y),
@@ -373,11 +381,11 @@ pub fn hroad_near_hroad(x: u8, y: u8) -> Vec<(u8, u8)> {
         vec![(x - 1, y), (x + 1, y)]
     }
 }
-pub fn building_near_vroad(x: u8, y: u8) -> [(u8, u8); 2] {
+pub const fn building_near_vroad(x: u8, y: u8) -> [(u8, u8); 2] {
     let off = y % 2;
     [(x * 2 + off, y), (x * 2 + off, y + 1)]
 }
-pub fn vroad_near_building(x: u8, y: u8) -> Option<(u8, u8)> {
+pub const fn vroad_near_building(x: u8, y: u8) -> Option<(u8, u8)> {
     let off = if x % 2 == y % 2 { 0 } else { 1 };
     if y == 0 && off == 1 {
         return None;
@@ -387,7 +395,7 @@ pub fn vroad_near_building(x: u8, y: u8) -> Option<(u8, u8)> {
     }
     Some((x / 2, y - off))
 }
-pub fn building_near_hroad(x: u8, y: u8) -> [(u8, u8); 2] {
+pub const fn building_near_hroad(x: u8, y: u8) -> [(u8, u8); 2] {
     [(x, y), (x + 1, y)]
 }
 pub fn hroad_near_building(x: u8, y: u8) -> Vec<(u8, u8)> {

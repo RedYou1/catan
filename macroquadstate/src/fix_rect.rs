@@ -9,7 +9,8 @@ pub struct FixRect {
 }
 
 impl FixRect {
-    pub fn new(width: f32, height: f32, color: Color) -> Self {
+    
+    pub const fn new(width: f32, height: f32, color: Color) -> Self {
         Self {
             width,
             height,
@@ -35,6 +36,6 @@ impl Drawable for FixRect {
     }
 
     fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
-        draw_rectangle(x, y, width, height, self.color)
+        draw_rectangle(x, y, width, height, self.color);
     }
 }

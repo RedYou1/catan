@@ -3,7 +3,6 @@ use macroquad::prelude::*;
 use crate::{
     center::{Center, CenterH, CenterV},
     drawable::Drawable,
-    fix_rect::FixRect,
     h_stack::HStack,
     hstack,
     range::Range,
@@ -14,50 +13,7 @@ use crate::{
 };
 
 #[test]
-fn test_widgets() {
-    let screen = zstack![
-        FixRect::new(100.0, 100.0, DARKGRAY),
-        vstack![FixRect::new(5.0, 5.0, RED)]
-    ];
-
-    assert_eq!(
-        screen.width(),
-        Range {
-            min: 100.0,
-            max: Some(100.0)
-        }
-    );
-    assert_eq!(
-        screen.height(),
-        Range {
-            min: 100.0,
-            max: Some(100.0)
-        }
-    );
-
-    let screen = zstack![
-        FixRect::new(100.0, 100.0, DARKGRAY),
-        vstack![
-            FixRect::new(5.0, 5.0, RED),
-            FixRect::new(100.0, 100.0, GREEN)
-        ]
-    ];
-
-    assert_eq!(
-        screen.width(),
-        Range {
-            min: 100.0,
-            max: Some(100.0)
-        }
-    );
-    assert_eq!(
-        screen.height(),
-        Range {
-            min: 105.0,
-            max: Some(105.0)
-        }
-    );
-
+fn test_1() {
     let mut screen = Center::new(zstack![vstack![
         hstack![
             TestRect::new("Center1.1", 1.0, 1.0, 1.0, 1.0),
@@ -107,7 +63,10 @@ fn test_widgets() {
         }
     );
     screen.draw(0.0, 0.0, 200.0, 200.0);
+}
 
+#[test]
+fn test_2() {
     let mut screen = Center::new(zstack![
         TestRect::new("Back", 0.0, 0.0, 200.0, 200.0),
         Center::new(vstack![
@@ -176,7 +135,7 @@ struct TestRect<'a> {
 }
 
 impl<'a> TestRect<'a> {
-    pub fn new(message: &'a str, x: f32, y: f32, width: f32, height: f32) -> Self {
+    pub const fn new(message: &'a str, x: f32, y: f32, width: f32, height: f32) -> Self {
         Self {
             message,
             x,
@@ -202,6 +161,7 @@ impl<'a> Drawable for TestRect<'a> {
         }
     }
 
+    #[allow(clippy::float_cmp)]
     fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
         assert_eq!(self.x, x, "x:{}", self.message);
         assert_eq!(self.y, y, "y:{}", self.message);

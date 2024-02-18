@@ -1,15 +1,11 @@
 use crate::{drawable::Drawable, range::Range};
 
+#[derive(Default, Copy, Clone)]
 pub struct Empty;
 
 impl Empty {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
-
-impl Default for Empty {
-    fn default() -> Self {
+    
+    pub const fn new() -> Self {
         Self {}
     }
 }

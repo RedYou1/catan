@@ -11,6 +11,7 @@ pub struct FixText {
 }
 
 impl FixText {
+    
     pub fn new(text: String, font: u16, color: Color) -> Self {
         let center = get_text_center(text.as_str(), None, font, 1.0, 0.0);
         let width = {
@@ -54,6 +55,6 @@ impl Drawable for FixText {
             y + self.height.min,
             f32::from(self.font),
             self.color,
-        )
+        );
     }
 }

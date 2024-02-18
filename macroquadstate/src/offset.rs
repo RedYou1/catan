@@ -7,7 +7,8 @@ pub struct Offset<T: Drawable> {
 }
 
 impl<T: Drawable> Offset<T> {
-    pub fn new(x: f32, y: f32, element: T) -> Self {
+    
+    pub const fn new(x: f32, y: f32, element: T) -> Self {
         Self { x, y, element }
     }
 }
@@ -30,6 +31,6 @@ impl<T: Drawable> Drawable for Offset<T> {
 
     fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
         self.element
-            .draw(x + self.x, y + self.y, width - self.x, height - self.y)
+            .draw(x + self.x, y + self.y, width - self.x, height - self.y);
     }
 }

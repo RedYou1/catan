@@ -12,7 +12,7 @@ pub struct Button<'a, Data: DrawableState<DataReturn>, DataReturn: Drawable, Fun
 impl<'a, Data: DrawableState<DataReturn>, DataReturn: Drawable, Func: FnMut(&mut Data)>
     Button<'a, Data, DataReturn, Func>
 {
-    pub fn new(text: &'a str, state: *mut State<Data, DataReturn>, action: Func) -> Self {
+    pub const fn new(text: &'a str, state: *mut State<Data, DataReturn>, action: Func) -> Self {
         Self {
             text,
             state,

@@ -5,7 +5,7 @@ pub struct CenterV<T: Drawable> {
 }
 
 impl<T: Drawable> CenterV<T> {
-    pub fn new(element: T) -> Self {
+    pub const fn new(element: T) -> Self {
         Self { element }
     }
 }
@@ -31,7 +31,7 @@ impl<T: Drawable> Drawable for CenterV<T> {
             height
         };
         self.element
-            .draw(x, y + (height - nheight) / 2.0, width, nheight)
+            .draw(x, y + (height - nheight) / 2.0, width, nheight);
     }
 }
 
@@ -40,7 +40,7 @@ pub struct CenterH<T: Drawable> {
 }
 
 impl<T: Drawable> CenterH<T> {
-    pub fn new(element: T) -> Self {
+    pub const fn new(element: T) -> Self {
         Self { element }
     }
 }
@@ -66,7 +66,7 @@ impl<T: Drawable> Drawable for CenterH<T> {
             width
         };
         self.element
-            .draw(x + (width - nwidth) / 2.0, y, nwidth, height)
+            .draw(x + (width - nwidth) / 2.0, y, nwidth, height);
     }
 }
 
@@ -75,7 +75,7 @@ pub struct Center<T: Drawable> {
 }
 
 impl<T: Drawable> Center<T> {
-    pub fn new(element: T) -> Self {
+    pub const fn new(element: T) -> Self {
         Self { element }
     }
 }
@@ -114,6 +114,6 @@ impl<T: Drawable> Drawable for Center<T> {
             y + (height - nheight) / 2.0,
             nwidth,
             nheight,
-        )
+        );
     }
 }
