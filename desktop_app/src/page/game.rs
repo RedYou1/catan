@@ -21,6 +21,7 @@ use crate::{
     data::{Data, DataReturn, Thief},
     draw::{
         building::building,
+        port,
         road::{hroad, vroad},
         tile,
     },
@@ -160,8 +161,9 @@ pub fn choose_steal(state: &mut State<Data, DataReturn>) -> Option<HStack<4>> {
     }
 }
 
-pub fn draw_map(state: &mut State<Data, DataReturn>) -> ZStack<146> {
-    let mut r = Vec::<Box<dyn Drawable>>::with_capacity(146);
+const GAME_ELEMENTS: usize = 155;
+pub fn draw_map(state: &mut State<Data, DataReturn>) -> ZStack<GAME_ELEMENTS> {
+    let mut r = Vec::<Box<dyn Drawable>>::with_capacity(GAME_ELEMENTS);
     r.push(Box::new(Space::new(500.0, 440.0)));
     for y in 0..5 {
         for x in 0..5 {
@@ -173,6 +175,10 @@ pub fn draw_map(state: &mut State<Data, DataReturn>) -> ZStack<146> {
             }
             r.push(Box::new(tile::tile(x, y, state)));
         }
+    }
+
+    for (id, port) in state.data().game.ports().iter().enumerate() {
+        r.push(Box::new(port::port(u8::try_from(id).expect(""), *port)));
     }
 
     for y in 0..5 {
@@ -222,5 +228,9 @@ pub fn draw_map(state: &mut State<Data, DataReturn>) -> ZStack<146> {
             });
         }
     }
-    ZStack::new(r.try_into().ok().expect("not 146 element"))
+    ZStack::new(
+        r.try_into()
+            .ok()
+            .unwrap_or_else(|| panic!("not {GAME_ELEMENTS} element")),
+    )
 }

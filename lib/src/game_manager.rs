@@ -103,7 +103,7 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
                 Port::new(ports[0], Pos::new(2, 0), Pos::new(3, 0)),
                 Port::new(ports[1], Pos::new(5, 0), Pos::new(6, 0)),
                 Port::new(ports[2], Pos::new(8, 1), Pos::new(9, 1)),
-                Port::new(ports[3], Pos::new(0, 1), Pos::new(0, 2)),
+                Port::new(ports[3], Pos::new(1, 1), Pos::new(1, 2)),
                 Port::new(ports[4], Pos::new(10, 2), Pos::new(10, 3)),
                 Port::new(ports[5], Pos::new(1, 3), Pos::new(1, 4)),
                 Port::new(ports[6], Pos::new(9, 4), Pos::new(8, 4)),
@@ -263,6 +263,10 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
 
     pub fn thief_mut(&mut self) -> &mut (u8, u8) {
         &mut self.thief
+    }
+
+    pub const fn ports(&self) -> &[Port; 9]{
+        &self.ports
     }
     
     #[allow(clippy::similar_names)]

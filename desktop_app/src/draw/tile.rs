@@ -28,7 +28,7 @@ pub fn tile(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Offset<ZStack<
             Ressource::Tree => GREEN,
             Ressource::Wheet => GOLD,
             Ressource::Brick => RED,
-            Ressource::Sheep => LIGHTGRAY,
+            Ressource::Sheep => WHITE,
             Ressource::Stone => GRAY,
         }
     } else {

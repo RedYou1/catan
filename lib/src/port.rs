@@ -15,4 +15,16 @@ impl Port {
             pos2,
         }
     }
+
+    pub const fn ressource(&self) -> Option<Ressource> {
+        self.ressource
+    }
+
+    pub const fn pos1(&self) -> Pos {
+        self.pos1
+    }
+
+    pub const fn pos2(&self) -> Pos {
+        self.pos2
+    }
 }
