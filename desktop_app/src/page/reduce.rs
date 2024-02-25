@@ -5,10 +5,7 @@ use macroquadstate::{
     hstack, margin::Margin, space::Space, state::State, v_stack::VStack,
 };
 
-use crate::{
-    data::{Data, DataReturn},
-    Page,
-};
+use crate::data::{Data, DataReturn, GamePage};
 
 #[profiling::function]
 pub fn reduce(state: &mut State<Data, DataReturn>) -> Option<VStack<4>> {
@@ -21,8 +18,8 @@ pub fn reduce(state: &mut State<Data, DataReturn>) -> Option<VStack<4>> {
         .enumerate()
         .find(|(_, player)| player.ressources().amounts() > max_amount)
     else {
-        state.mutate(&mut |data| {
-            data.page = Page::Main;
+        state.mutate(|data| {
+            data.page = GamePage::Game;
         });
         return None;
     };

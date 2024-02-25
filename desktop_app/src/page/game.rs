@@ -8,24 +8,24 @@ use macroquadstate::{
     drawable::Drawable,
     empty::Empty,
     fix_text::FixText,
-    h_stack::HStack,
     margin::Margin,
     space::Space,
     state::State,
     v_stack::VStack,
+    vec_h_stack::VecHStack,
+    vec_v_stack::VecVStack,
     vstack,
     z_stack::ZStack,
 };
 
 use crate::{
-    data::{Data, DataReturn, Thief},
+    data::{Data, DataReturn, GamePage, Thief},
     draw::{
         building::building,
         port,
         road::{hroad, vroad},
         tile,
     },
-    Page,
 };
 
 #[profiling::function]
@@ -53,11 +53,11 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack<4> {
             FixText::new(
                 format!("Player to play: {}", current_player.name()),
                 25,
-                WHITE,
+                current_player.color(),
             ),
             2.5,
         ))),
-        Box::new(CenterH::new(VStack::<4>::new(
+        Box::new(CenterH::new(VecVStack::new(
             data.game
                 .players()
                 .iter()
@@ -72,15 +72,12 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack<4> {
                                 player.ressources().to_string()
                             ),
                             20,
-                            WHITE,
+                            player.color(),
                         ),
                         2.0,
                     )) as Box<dyn Drawable>
                 })
-                .collect::<Vec<Box<dyn Drawable>>>()
-                .try_into()
-                .ok()
-                .expect("don't contait 4 element"),
+                .collect(),
         ))),
         Box::new(CenterH::new(Margin::news(draw_map(state), 10.0))),
         match to_choose {
@@ -108,7 +105,7 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack<4> {
                 };
                 if a + b == 7 {
                     data.to_reduce = RessourceManager::default();
-                    data.page = Page::Reduce;
+                    data.page = GamePage::Reduce;
                 }
             }))),
             _ => Box::new(Empty::new()),
@@ -117,14 +114,14 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack<4> {
 }
 
 #[profiling::function]
-pub fn choose_steal(state: &mut State<Data, DataReturn>) -> Option<HStack<4>> {
-    let data = state.data();
+pub fn choose_steal(state: *mut State<Data, DataReturn>) -> Option<VecHStack> {
+    let data = unsafe { state.as_ref().expect("") }.data();
     let player_id = data.game.current_player_id();
-    let mut players: Vec<(u8, &'static str)> = Vec::with_capacity(data.game.players().len());
+    let mut players: Vec<(u8, &str)> = Vec::with_capacity(data.game.players_len() as usize);
     for e in building_around_tile(data.game.thief().0, data.game.thief().1)
         .iter()
         .filter_map(|(a, b)| data.game.building(*a, *b))
-        .map(|(_, player)| (*player, *data.game.player(*player)))
+        .map(|(_, player)| (*player, data.game.player(*player)))
         .filter(|(id, player)| *id != player_id && player.ressources().amounts() > 0)
         .map(|(id, player)| (id, player.name()))
     {
@@ -133,18 +130,18 @@ pub fn choose_steal(state: &mut State<Data, DataReturn>) -> Option<HStack<4>> {
         }
     }
     if players.is_empty() {
-        state.mutate(&mut |data| {
+        unsafe { state.as_mut().expect("") }.mutate(|data| {
             data.thief = Thief::None;
         });
         None
     } else if players.len() == 1 {
-        state.mutate(&mut |data| {
+        unsafe { state.as_mut().expect("") }.mutate(|data| {
             data.game.steal(players[0].0, player_id);
             data.thief = Thief::None;
         });
         None
     } else {
-        Some(HStack::new(
+        Some(VecHStack::new(
             players
                 .iter()
                 .map(|&(player, pname)| {
@@ -153,10 +150,7 @@ pub fn choose_steal(state: &mut State<Data, DataReturn>) -> Option<HStack<4>> {
                         data.thief = Thief::None;
                     }))) as Box<dyn Drawable>
                 })
-                .collect::<Vec<Box<dyn Drawable>>>()
-                .try_into()
-                .ok()
-                .expect("don't contait 4 element"),
+                .collect(),
         ))
     }
 }

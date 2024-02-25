@@ -17,5 +17,7 @@ pub mod state;
 #[cfg(test)]
 mod tests;
 pub mod v_stack;
+pub mod vec_h_stack;
+pub mod vec_v_stack;
 pub mod wrapper;
 pub mod z_stack;

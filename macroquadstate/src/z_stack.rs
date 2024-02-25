@@ -67,18 +67,21 @@ impl<const LEN: usize> Drawable for ZStack<LEN> {
         self.height.clone()
     }
 
-    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
+    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) -> Result<(), ()> {
         for e in &mut self.elements {
             let r = e.as_mut();
             let w = r.width();
             let h = r.height();
-            r.draw(
+            if let Err(()) = r.draw(
                 x,
                 y,
                 width.clamp(w.min, w.max.unwrap_or(f32::MAX)),
                 height.clamp(h.min, h.max.unwrap_or(f32::MAX)),
-            );
+            ) {
+                return Err(());
+            }
         }
+        Ok(())
     }
 }
 

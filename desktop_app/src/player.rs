@@ -2,9 +2,9 @@ use catan_lib::player::TPlayer;
 use catan_lib::ressource_manager::RessourceManager;
 use macroquad::prelude::*;
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone)]
 pub struct Player {
-    name: &'static str,
+    name: String,
     color: Color,
     road_remaining: u8,
     house_remaining: u8,
@@ -60,7 +60,7 @@ impl TPlayer for Player {
 }
 
 impl Player {
-    pub const fn new(name: &'static str, color: Color) -> Self {
+    pub const fn new(name: String, color: Color) -> Self {
         Self {
             name,
             color,
@@ -73,8 +73,8 @@ impl Player {
         }
     }
 
-    pub const fn name(&self) -> &'static str {
-        self.name
+    pub fn name(&self) -> &str {
+        self.name.as_str()
     }
 
     pub const fn color(&self) -> Color {

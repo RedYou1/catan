@@ -8,7 +8,6 @@ pub struct FixCircle {
 }
 
 impl FixCircle {
-    
     pub const fn new(radius: f32, color: Color) -> Self {
         Self { radius, color }
     }
@@ -30,8 +29,9 @@ impl Drawable for FixCircle {
         }
     }
 
-    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
+    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) -> Result<(), ()> {
         let radius = f32::min(width, height);
         draw_circle(x, y, radius, self.color);
+        Ok(())
     }
 }

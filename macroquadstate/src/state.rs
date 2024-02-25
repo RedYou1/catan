@@ -29,9 +29,17 @@ impl<K: DrawableState<V>, V: Drawable> State<K, V> {
     }
 
     #[profiling::function]
-    pub fn mutate<Func: FnMut(&mut K)>(&mut self, func: &mut Func) {
+    pub fn mutate<Func: Fn(&mut K)>(&mut self, func: Func) {
         func(&mut self.data);
         self.to_redraw = true;
+    }
+
+    #[profiling::function]
+    pub fn draw_sub<Sub: Drawable, Func: Fn(*mut Self, &mut K) -> Sub>(
+        &mut self,
+        func: Func,
+    ) -> Sub {
+        func(self, &mut self.data)
     }
 }
 
@@ -45,11 +53,14 @@ impl<K: DrawableState<V>, V: Drawable> Drawable for State<K, V> {
         self.data.state_height()
     }
 
-    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
+    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) -> Result<(), ()> {
         if self.to_redraw {
             self.to_redraw = false;
             self.draw = Some(K::gen_draw(self));
         }
-        self.draw.as_mut().expect("can't draw state").draw(x, y, width, height);
+        self.draw
+            .as_mut()
+            .expect("can't draw state")
+            .draw(x, y, width, height)
     }
 }

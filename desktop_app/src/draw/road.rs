@@ -80,8 +80,8 @@ pub fn hroad(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Option<ZStack
 }
 
 fn buy_button<
-    Get: Fn(&Game<Player, 4>, u8, u8) -> Option<&u8>,
-    GetMut: Fn(&mut Game<Player, 4>, u8, u8) -> &mut Option<u8>,
+    Get: Fn(&Game<Player>, u8, u8) -> Option<&u8>,
+    GetMut: Fn(&mut Game<Player>, u8, u8) -> &mut Option<u8>,
     CanPlace: Fn(u8, u8, &Data) -> bool,
 >(
     road_coord: (u8, u8),
@@ -133,7 +133,7 @@ fn buy_button<
 }
 
 #[profiling::function]
-fn buy_road<GetMut: Fn(&mut Game<Player, 4>, u8, u8) -> &mut Option<u8>>(
+fn buy_road<GetMut: Fn(&mut Game<Player>, u8, u8) -> &mut Option<u8>>(
     x: u8,
     y: u8,
     get_mut: GetMut,

@@ -6,7 +6,6 @@ pub struct Space {
 }
 
 impl Space {
-    
     pub const fn new(width: f32, height: f32) -> Self {
         Self { width, height }
     }
@@ -28,5 +27,7 @@ impl Drawable for Space {
         }
     }
 
-    fn draw(&mut self, _: f32, _: f32, _: f32, _: f32) {}
+    fn draw(&mut self, _: f32, _: f32, _: f32, _: f32) -> Result<(), ()> {
+        Ok(())
+    }
 }

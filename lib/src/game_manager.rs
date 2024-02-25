@@ -7,9 +7,9 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 
 #[derive(Debug)]
-pub struct Game<Player: TPlayer, const PLAYERS_COUNT: usize> {
+pub struct Game<Player: TPlayer> {
     max_ressource: u8,
-    players: [Player; PLAYERS_COUNT],
+    players: Vec<Player>,
     map: [[Option<Tile>; 5]; 5],
     ports: [Port; 9],
     building: [[Option<(Building, u8)>; 11]; 6],
@@ -19,29 +19,12 @@ pub struct Game<Player: TPlayer, const PLAYERS_COUNT: usize> {
     thief: (u8, u8),
 }
 
-impl<Player: TPlayer + Default + Copy, const PLAYERS_COUNT: usize> Default
-    for Game<Player, PLAYERS_COUNT>
-{
-    fn default() -> Self {
-        Self {
-            max_ressource: 0,
-            players: [Player::default(); PLAYERS_COUNT],
-            map: [[None; 5]; 5],
-            ports: [Port::default(); 9],
-            building: [[None; 11]; 6],
-            vroad: [[None; 6]; 5],
-            hroad: [[None; 10]; 6],
-            to_play: 0,
-            thief: (0, 0),
-        }
-    }
-}
-
-impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
+impl<Player: TPlayer> Game<Player> {
     #[allow(clippy::missing_panics_doc)]
-    pub fn new(max_ressource: u8, players: [Player; PLAYERS_COUNT]) -> Option<Self> {
-        assert!(PLAYERS_COUNT < u8::MAX as usize);
-        assert!(PLAYERS_COUNT > 1);
+    pub fn new(max_ressource: u8, players: Vec<Player>) -> Option<Self> {
+        let plen = players.len();
+        assert!(plen < 9);
+        assert!(plen > 1);
         let mut dices = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
         let mut rng = rand::thread_rng();
         dices.shuffle(&mut rng);
@@ -113,7 +96,7 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
             building: [[None; 11]; 6],
             vroad: [[None; 6]; 5],
             hroad: [[None; 10]; 6],
-            to_play: u8::try_from(rng.gen_range(0..PLAYERS_COUNT)).expect("random out of bound"),
+            to_play: u8::try_from(rng.gen_range(0..plen)).expect("random out of bound"),
             thief: match dessert_id {
                 0 => (1, 0),
                 1 => (2, 0),
@@ -211,7 +194,7 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
     #[allow(clippy::missing_panics_doc)]
     pub fn prev_player(&mut self) {
         if self.to_play == 0 {
-            self.to_play = u8::try_from(PLAYERS_COUNT - 1).expect("");
+            self.to_play = u8::try_from(self.players.len() - 1).expect("");
         } else {
             self.to_play -= 1;
         }
@@ -219,6 +202,11 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
 
     pub const fn player(&self, id: u8) -> &Player {
         &self.players[id as usize]
+    }
+
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn players_len(&self) -> u8 {
+        self.players.len() as u8
     }
 
     pub fn players(&self) -> &[Player] {
@@ -265,10 +253,10 @@ impl<Player: TPlayer, const PLAYERS_COUNT: usize> Game<Player, PLAYERS_COUNT> {
         &mut self.thief
     }
 
-    pub const fn ports(&self) -> &[Port; 9]{
+    pub const fn ports(&self) -> &[Port; 9] {
         &self.ports
     }
-    
+
     #[allow(clippy::similar_names)]
     #[allow(clippy::missing_panics_doc)]
     pub fn update_longuest_road(&mut self, x: u8, y: u8, is_vertical: bool, player_id: u8) {

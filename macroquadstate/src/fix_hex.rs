@@ -8,7 +8,6 @@ pub struct FixHex {
 }
 
 impl FixHex {
-    
     pub const fn new(radius: f32, color: Color) -> Self {
         Self { radius, color }
     }
@@ -30,7 +29,7 @@ impl Drawable for FixHex {
         }
     }
 
-    fn draw(&mut self, x: f32, y: f32, _: f32, _: f32) {
+    fn draw(&mut self, x: f32, y: f32, _: f32, _: f32) -> Result<(), ()> {
         draw_hexagon(
             x + self.radius,
             y + self.radius,
@@ -40,5 +39,6 @@ impl Drawable for FixHex {
             BLANK,
             self.color,
         );
+        Ok(())
     }
 }

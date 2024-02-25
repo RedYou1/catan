@@ -12,7 +12,6 @@ pub struct Line {
 }
 
 impl Line {
-    
     pub const fn new(x1: f32, y1: f32, x2: f32, y2: f32, thickness: f32, color: Color) -> Self {
         Self {
             x1,
@@ -43,7 +42,7 @@ impl Drawable for Line {
         }
     }
 
-    fn draw(&mut self, x: f32, y: f32, _: f32, _: f32) {
+    fn draw(&mut self, x: f32, y: f32, _: f32, _: f32) -> Result<(), ()> {
         draw_line(
             self.x1 + x,
             self.y1 + y,
@@ -52,5 +51,6 @@ impl Drawable for Line {
             self.thickness,
             self.color,
         );
+        Ok(())
     }
 }

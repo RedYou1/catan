@@ -23,7 +23,7 @@ impl<T: Drawable> Drawable for CenterV<T> {
         }
     }
 
-    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
+    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) -> Result<(), ()> {
         let h = self.element.height();
         let nheight = if height > h.max.unwrap_or(f32::MAX) {
             h.max.unwrap_or(f32::MAX)
@@ -31,7 +31,7 @@ impl<T: Drawable> Drawable for CenterV<T> {
             height
         };
         self.element
-            .draw(x, y + (height - nheight) / 2.0, width, nheight);
+            .draw(x, y + (height - nheight) / 2.0, width, nheight)
     }
 }
 
@@ -58,7 +58,7 @@ impl<T: Drawable> Drawable for CenterH<T> {
         self.element.height()
     }
 
-    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
+    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) -> Result<(), ()> {
         let w = self.element.width();
         let nwidth = if width > w.max.unwrap_or(f32::MAX) {
             w.max.unwrap_or(f32::MAX)
@@ -66,7 +66,7 @@ impl<T: Drawable> Drawable for CenterH<T> {
             width
         };
         self.element
-            .draw(x + (width - nwidth) / 2.0, y, nwidth, height);
+            .draw(x + (width - nwidth) / 2.0, y, nwidth, height)
     }
 }
 
@@ -96,7 +96,7 @@ impl<T: Drawable> Drawable for Center<T> {
         }
     }
 
-    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
+    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) -> Result<(), ()> {
         let w = self.element.width();
         let nwidth = if width > w.max.unwrap_or(f32::MAX) {
             w.max.unwrap_or(f32::MAX)
@@ -114,6 +114,6 @@ impl<T: Drawable> Drawable for Center<T> {
             y + (height - nheight) / 2.0,
             nwidth,
             nheight,
-        );
+        )
     }
 }

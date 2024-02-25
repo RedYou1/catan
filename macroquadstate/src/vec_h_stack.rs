@@ -1,18 +1,18 @@
 use crate::{drawable::Drawable, range::Range};
 use macroquad::prelude::*;
 
-pub struct HStack<const LEN: usize>
+pub struct VecHStack
 where
     Self: Sized,
 {
-    elements: [Box<dyn Drawable>; LEN],
+    elements: Vec<Box<dyn Drawable>>,
     width: Range,
     height: Range,
 }
 
-impl<const LEN: usize> HStack<LEN> {
+impl VecHStack {
     #[allow(clippy::missing_panics_doc)]
-    pub fn new(elements: [Box<dyn Drawable>; LEN]) -> Self {
+    pub fn new(elements: Vec<Box<dyn Drawable>>) -> Self {
         let width = if elements.is_empty() {
             Range {
                 min: 0.0,
@@ -63,7 +63,7 @@ impl<const LEN: usize> HStack<LEN> {
 }
 
 #[profiling::all_functions]
-impl<const LEN: usize> Drawable for HStack<LEN> {
+impl Drawable for VecHStack {
     fn width(&self) -> Range {
         self.width.clone()
     }
@@ -107,8 +107,8 @@ impl<const LEN: usize> Drawable for HStack<LEN> {
 }
 
 #[macro_export]
-macro_rules! hstack {
+macro_rules! vechstack {
     [$($element:expr),* $(,)?] => {
-        HStack::new([$(Box::new($element)),*])
+        HStack::new(vec![$(Box::new($element)),*])
     };
 }

@@ -12,7 +12,6 @@ use crate::{
     page::{game, reduce::reduce},
     player::Player,
     starting::Starting,
-    Page,
 };
 
 #[derive(PartialEq)]
@@ -26,32 +25,38 @@ pub enum Thief {
 pub type DataReturn = Wrapper;
 #[deny(clippy::module_name_repetitions)]
 
+pub enum GamePage {
+    Game,
+    Reduce,
+}
+
 pub struct Data {
-    pub game: Game<Player, 4>,
-    pub page: Page,
+    pub game: Game<Player>,
+    pub page: GamePage,
     pub to_reduce: RessourceManager,
     pub dices: Option<(u8, u8)>,
     pub debut: Starting,
     pub thief: Thief,
 }
 
+const PLAYER_COLOR: [Color; 8] = [BLUE, RED, GREEN, YELLOW, PURPLE, WHITE, BLACK, ORANGE];
+
 impl Data {
-    pub fn new() -> Self {
+    pub fn new(player_number: u8) -> Self {
         Self {
             game: Game::new(
                 7,
-                [
-                    Player::new("Blue", BLUE),
-                    Player::new("Red", RED),
-                    Player::new("Green", GREEN),
-                    Player::new("Yellow", YELLOW),
-                ],
+                (1..=player_number)
+                    .collect::<Vec<u8>>()
+                    .iter()
+                    .map(|i| Player::new(format!("P{i}"), PLAYER_COLOR[*i as usize - 1]))
+                    .collect(),
             )
             .expect("Couldn't create the game"),
-            page: Page::Main,
+            page: GamePage::Game,
             to_reduce: RessourceManager::default(),
             dices: None,
-            debut: Starting::new(),
+            debut: Starting::new(player_number),
             thief: Thief::None,
         }
     }
@@ -77,8 +82,8 @@ impl DrawableState<DataReturn> for Data {
 
     fn gen_draw(state: &mut State<Data, DataReturn>) -> DataReturn {
         match state.data().page {
-            Page::Main => Wrapper::new(Center::new(game::game(state))),
-            Page::Reduce => {
+            GamePage::Game => Wrapper::new(Center::new(game::game(state))),
+            GamePage::Reduce => {
                 if let Some(reduce) = reduce(state) {
                     Wrapper::new(Center::new(reduce))
                 } else {

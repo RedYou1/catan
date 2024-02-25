@@ -38,7 +38,7 @@ fn test_1() {
             max: None
         }
     );
-    screen.draw(0.0, 0.0, 4.0, 4.0);
+    assert_eq!(screen.draw(0.0, 0.0, 4.0, 4.0), Ok(()));
 
     let mut screen = Center::new(zstack![
         TestRect::new("Back", 50.0, 47.5, 100.0, 100.0),
@@ -62,7 +62,7 @@ fn test_1() {
             max: None
         }
     );
-    screen.draw(0.0, 0.0, 200.0, 200.0);
+    assert_eq!(screen.draw(0.0, 0.0, 200.0, 200.0), Ok(()));
 }
 
 #[test]
@@ -123,7 +123,7 @@ fn test_2() {
             max: None
         }
     );
-    screen.draw(0.0, 0.0, 200.0, 200.0);
+    assert_eq!(screen.draw(0.0, 0.0, 200.0, 200.0), Ok(()));
 }
 
 struct TestRect<'a> {
@@ -162,10 +162,11 @@ impl<'a> Drawable for TestRect<'a> {
     }
 
     #[allow(clippy::float_cmp)]
-    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) {
+    fn draw(&mut self, x: f32, y: f32, width: f32, height: f32) -> Result<(), ()> {
         assert_eq!(self.x, x, "x:{}", self.message);
         assert_eq!(self.y, y, "y:{}", self.message);
         assert_eq!(self.width, width, "w:{}", self.message);
         assert_eq!(self.height, height, "h:{}", self.message);
+        Ok(())
     }
 }

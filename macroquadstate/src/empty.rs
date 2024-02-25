@@ -4,7 +4,6 @@ use crate::{drawable::Drawable, range::Range};
 pub struct Empty;
 
 impl Empty {
-    
     pub const fn new() -> Self {
         Self {}
     }
@@ -26,5 +25,7 @@ impl Drawable for Empty {
         }
     }
 
-    fn draw(&mut self, _: f32, _: f32, _: f32, _: f32) {}
+    fn draw(&mut self, _: f32, _: f32, _: f32, _: f32) -> Result<(), ()> {
+        Ok(())
+    }
 }

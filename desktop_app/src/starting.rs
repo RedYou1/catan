@@ -10,10 +10,10 @@ pub struct Starting {
 }
 
 impl Starting {
-    pub const fn new() -> Self {
+    pub const fn new(player_number: u8) -> Self {
         Self {
             building: false,
-            step: 4 * 2,
+            step: player_number * 2,
             building_x: 0,
             building_y: 0,
         }
@@ -23,11 +23,12 @@ impl Starting {
         self.building_y = y;
         self.building = true;
     }
-    pub fn place_road(&mut self, game: &mut Game<Player, 4>) {
+    pub fn place_road(&mut self, game: &mut Game<Player>) {
         self.building = false;
         self.step -= 1;
-        if self.step == 4 || self.step == 0 {
-        } else if self.step < 4 {
+        let plen = game.players_len();
+        if self.step == plen || self.step == 0 {
+        } else if self.step < plen {
             game.prev_player();
         } else {
             game.next_player();
