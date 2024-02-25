@@ -1,4 +1,4 @@
-use catan_lib::ressource::Ressource;
+use catan_lib::{game_manager::Thief, ressource::Ressource};
 use macroquad::prelude::*;
 use macroquadstate::{
     button::Button,
@@ -16,7 +16,7 @@ use macroquadstate::{
 };
 
 use crate::{
-    data::{Data, DataReturn, Thief},
+    data::{Data, DataReturn},
     HEX_SIZE,
 };
 
@@ -87,12 +87,12 @@ pub fn tile(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Offset<ZStack<
             } else {
                 Box::new(Empty::new())
             },
-            if *state.data().game.thief() == (x, y) {
+            if state.data().game.thief_coords() == (x, y) {
                 Box::new(Center::new(FixRect::new(HEX_SIZE, HEX_SIZE, BLACK)))
-            } else if state.data().thief == Thief::Waiting {
+            } else if state.data().game.thief_state() == Thief::Waiting {
                 Box::new(Center::new(Button::new(" ", state, move |data| {
-                    data.thief = Thief::Choosing;
-                    *data.game.thief_mut() = (x, y);
+                    data.game.set_thief_state(Thief::Choosing);
+                    data.game.set_thief_coords(x, y);
                 })))
             } else {
                 Box::new(Empty::new())

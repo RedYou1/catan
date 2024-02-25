@@ -14,7 +14,6 @@ mod data;
 mod draw;
 mod page;
 mod player;
-mod starting;
 
 pub const HEX_SIZE: f32 = 50.0;
 

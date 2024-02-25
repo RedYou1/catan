@@ -1,5 +1,6 @@
 use catan_lib::{
-    game_manager::building_around_tile, player::TPlayer, ressource_manager::RessourceManager,
+    game_coords::building_around_tile, game_manager::Thief, player::TPlayer,
+    ressource_manager::RessourceManager,
 };
 use macroquad::prelude::*;
 use macroquadstate::{
@@ -19,7 +20,7 @@ use macroquadstate::{
 };
 
 use crate::{
-    data::{Data, DataReturn, GamePage, Thief},
+    data::{Data, DataReturn, GamePage},
     draw::{
         building::building,
         port,
@@ -34,15 +35,13 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack<4> {
     let current_player = data.game.current_player();
 
     let to_choose: (u8, u8, u8) = {
-        if data.debut.is_starting() {
+        if data.game.is_starting() {
             (0, 0, 0)
         } else if let Some((a, b)) = data.dices {
-            if data.thief == Thief::Waiting {
-                (0, a, b)
-            } else if data.thief == Thief::Choosing {
-                (1, a, b)
-            } else {
-                (2, a, b)
+            match data.game.thief_state() {
+                Thief::Waiting => (0, a, b),
+                Thief::Choosing => (1, a, b),
+                Thief::None => (2, a, b),
             }
         } else {
             (3, 0, 0)
@@ -98,11 +97,11 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack<4> {
             (3, _, _) => Box::new(CenterH::new(Button::new("Dice", state, |data| {
                 let (a, b) = data.game.throw_dice();
                 data.dices = Some((a, b));
-                data.thief = if a + b == 7 {
+                data.game.set_thief_state(if a + b == 7 {
                     Thief::Waiting
                 } else {
                     Thief::None
-                };
+                });
                 if a + b == 7 {
                     data.to_reduce = RessourceManager::default();
                     data.page = GamePage::Reduce;
@@ -118,7 +117,8 @@ pub fn choose_steal(state: *mut State<Data, DataReturn>) -> Option<VecHStack> {
     let data = unsafe { state.as_ref().expect("") }.data();
     let player_id = data.game.current_player_id();
     let mut players: Vec<(u8, &str)> = Vec::with_capacity(data.game.players_len() as usize);
-    for e in building_around_tile(data.game.thief().0, data.game.thief().1)
+    let (x, y) = data.game.thief_coords();
+    for e in building_around_tile(x, y)
         .iter()
         .filter_map(|(a, b)| data.game.building(*a, *b))
         .map(|(_, player)| (*player, data.game.player(*player)))
@@ -131,13 +131,13 @@ pub fn choose_steal(state: *mut State<Data, DataReturn>) -> Option<VecHStack> {
     }
     if players.is_empty() {
         unsafe { state.as_mut().expect("") }.mutate(|data| {
-            data.thief = Thief::None;
+            data.game.set_thief_state(Thief::None);
         });
         None
     } else if players.len() == 1 {
         unsafe { state.as_mut().expect("") }.mutate(|data| {
             data.game.steal(players[0].0, player_id);
-            data.thief = Thief::None;
+            data.game.set_thief_state(Thief::None);
         });
         None
     } else {
@@ -147,7 +147,7 @@ pub fn choose_steal(state: *mut State<Data, DataReturn>) -> Option<VecHStack> {
                 .map(|&(player, pname)| {
                     Box::new(CenterV::new(Button::new(pname, state, move |data| {
                         data.game.steal(player, player_id);
-                        data.thief = Thief::None;
+                        data.game.set_thief_state(Thief::None);
                     }))) as Box<dyn Drawable>
                 })
                 .collect(),

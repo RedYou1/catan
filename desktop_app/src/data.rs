@@ -11,15 +11,7 @@ use macroquadstate::{
 use crate::{
     page::{game, reduce::reduce},
     player::Player,
-    starting::Starting,
 };
-
-#[derive(PartialEq)]
-pub enum Thief {
-    None,
-    Waiting,
-    Choosing,
-}
 
 #[allow(clippy::module_name_repetitions)]
 pub type DataReturn = Wrapper;
@@ -35,8 +27,6 @@ pub struct Data {
     pub page: GamePage,
     pub to_reduce: RessourceManager,
     pub dices: Option<(u8, u8)>,
-    pub debut: Starting,
-    pub thief: Thief,
 }
 
 const PLAYER_COLOR: [Color; 8] = [BLUE, RED, GREEN, YELLOW, PURPLE, WHITE, BLACK, ORANGE];
@@ -56,8 +46,6 @@ impl Data {
             page: GamePage::Game,
             to_reduce: RessourceManager::default(),
             dices: None,
-            debut: Starting::new(player_number),
-            thief: Thief::None,
         }
     }
 }

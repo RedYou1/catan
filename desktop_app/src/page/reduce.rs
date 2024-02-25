@@ -97,8 +97,8 @@ fn edit_row(max_amount: u8, player_id: u8, state: &mut State<Data, DataReturn>) 
             Ressource::Sheep,
             Ressource::Stone,
         ]
-        .iter()
-        .map(move |&ressource| {
+        .into_iter()
+        .map(move |ressource| {
             let data = state.data();
             let player = data.game.player(player_id);
             let current_reduce = data.to_reduce.get(ressource);

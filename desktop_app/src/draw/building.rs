@@ -1,4 +1,4 @@
-use catan_lib::{building::Building, game_manager, player::TPlayer};
+use catan_lib::building::Building;
 use macroquad::prelude::*;
 use macroquadstate::{
     button::Button, empty::Empty, fix_circle::FixCircle, fix_rect::FixRect, offset::Offset,
@@ -53,33 +53,23 @@ pub fn building(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Option<ZSt
                 FixRect::new(15.0, 25.0, data.game.player(player_id).color()),
             )),
             {
-                if player_id == data.game.current_player_id() {
-                    let ressource = data.game.current_player().ressources();
-                    if ressource.can_buy(0, 2, 0, 0, 3) {
-                        Box::new(Offset::new(
-                            center_x - 5.5,
-                            center_y - 10.0,
-                            Button::new(" ", state, move |data| {
-                                upgrade(x, y, player_id, data);
-                            }),
-                        ))
-                    } else {
-                        Box::new(Empty::new())
-                    }
+                if player_id == data.game.current_player_id()
+                    && data.game.can_upgrade_building(player_id)
+                {
+                    Box::new(Offset::new(
+                        center_x - 5.5,
+                        center_y - 10.0,
+                        Button::new(" ", state, move |data| {
+                            data.game.upgrade_building(x, y, player_id);
+                        }),
+                    ))
                 } else {
                     Box::new(Empty::new())
                 }
             },
         ])),
         None => {
-            let ressource = data.game.current_player().ressources();
-            if !data.debut.building_turn() && !ressource.can_buy(1, 1, 1, 1, 0) {
-                return None;
-            }
-            if can_place(x, y, current_playing, data) {
-                return None;
-            }
-            if data.game.building_in_range(x, y) {
+            if !data.game.can_place_building(x, y, current_playing) {
                 return None;
             }
             Some(zstack![
@@ -93,56 +83,10 @@ pub fn building(x: u8, y: u8, state: &mut State<Data, DataReturn>) -> Option<ZSt
                     center_x - 5.5,
                     center_y - 10.0,
                     Button::new(" ", state, move |data| {
-                        buy_none(x, y, data);
+                        data.game.buy_building(x, y);
                     }),
                 )
             ])
         }
-    }
-}
-
-#[profiling::function]
-fn upgrade(x: u8, y: u8, player_id: u8, state: &mut Data) {
-    *state.game.building_mut(x, y) = Some((Building::BigHouse, player_id));
-    state
-        .game
-        .current_player_mut()
-        .ressources_mut()
-        .buy(0, 2, 0, 0, 3);
-}
-
-#[profiling::function]
-fn can_place(x: u8, y: u8, current_playing: u8, state: &Data) -> bool {
-    state.game.building_in_range(x, y)
-        || !(state.debut.building_turn()
-            || game_manager::hroad_near_building(x, y)
-                .iter()
-                .any(|(x1, y1)| {
-                    state
-                        .game
-                        .hroad(*x1, *y1)
-                        .map_or(false, |a| *a == current_playing)
-                })
-            || game_manager::vroad_near_building(x, y)
-                .iter()
-                .any(|(x1, y1)| {
-                    state
-                        .game
-                        .vroad(*x1, *y1)
-                        .map_or(false, |a| *a == current_playing)
-                }))
-}
-
-#[profiling::function]
-fn buy_none(x: u8, y: u8, state: &mut Data) {
-    *state.game.building_mut(x, y) = Some((Building::LittleHouse, state.game.current_player_id()));
-    if state.debut.building_turn() {
-        state.debut.place_building(x, y);
-    } else {
-        state
-            .game
-            .current_player_mut()
-            .ressources_mut()
-            .buy(1, 1, 1, 1, 0);
     }
 }

@@ -1,7 +1,4 @@
-use catan_lib::game_manager::Game;
-
-use crate::player::Player;
-
+#[derive(Debug)]
 pub struct Starting {
     building: bool,
     step: u8,
@@ -23,15 +20,15 @@ impl Starting {
         self.building_y = y;
         self.building = true;
     }
-    pub fn place_road(&mut self, game: &mut Game<Player>) {
+    pub fn place_road(&mut self, plen: u8) -> Option<bool> {
         self.building = false;
         self.step -= 1;
-        let plen = game.players_len();
         if self.step == plen || self.step == 0 {
+            None
         } else if self.step < plen {
-            game.prev_player();
+            Some(true)
         } else {
-            game.next_player();
+            Some(false)
         }
     }
     pub const fn near_building(&self, x: u8, y: u8) -> bool {
