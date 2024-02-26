@@ -1,5 +1,7 @@
 use catan_lib::{
-    game_coords::building_around_tile, game_manager::Thief, player::TPlayer,
+    game_coords::building_around_tile,
+    game_manager::{Game, Thief},
+    player::TPlayer,
     ressource_manager::RessourceManager,
 };
 use macroquad::prelude::*;
@@ -27,6 +29,7 @@ use crate::{
         road::{hroad, vroad},
         tile,
     },
+    player::Player,
 };
 
 #[profiling::function]
@@ -112,46 +115,56 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack<4> {
     ])
 }
 
-#[profiling::function]
-pub fn choose_steal(state: *mut State<Data, DataReturn>) -> Option<VecHStack> {
-    let data = unsafe { state.as_ref().expect("") }.data();
-    let player_id = data.game.current_player_id();
-    let mut players: Vec<(u8, &str)> = Vec::with_capacity(data.game.players_len() as usize);
-    let (x, y) = data.game.thief_coords();
-    for e in building_around_tile(x, y)
-        .iter()
-        .filter_map(|(a, b)| data.game.building(*a, *b))
-        .map(|(_, player)| (*player, data.game.player(*player)))
-        .filter(|(id, player)| *id != player_id && player.ressources().amounts() > 0)
-        .map(|(id, player)| (id, player.name()))
+fn steel_posibility(player_id: u8, game: &Game<Player>) -> Vec<(u8, &str)> {
+    let mut players: Vec<(u8, &str)> = Vec::with_capacity(game.players_len() as usize);
+    for e in {
+        let (x, y) = game.thief_coords();
+        building_around_tile(x, y)
+    }
+    .into_iter()
+    .filter_map(|(a, b)| game.building(a, b))
+    .map(|&(_, player)| (player, game.player(player)))
+    .filter(|&(id, player)| id != player_id && player.ressources().amounts() > 0)
+    .map(|(id, player)| (id, player.name()))
     {
         if !players.contains(&e) {
             players.push(e);
         }
     }
-    if players.is_empty() {
-        unsafe { state.as_mut().expect("") }.mutate(|data| {
-            data.game.set_thief_state(Thief::None);
-        });
-        None
-    } else if players.len() == 1 {
-        unsafe { state.as_mut().expect("") }.mutate(|data| {
-            data.game.steal(players[0].0, player_id);
-            data.game.set_thief_state(Thief::None);
-        });
-        None
-    } else {
-        Some(VecHStack::new(
+    players.sort_by(|(a, _), (b, _)| a.cmp(b));
+    players
+}
+
+#[profiling::function]
+pub fn choose_steal(state: *mut State<Data, DataReturn>) -> Option<VecHStack> {
+    let game = &unsafe { state.as_ref().expect("") }.data().game;
+    let player_id = game.current_player_id();
+    let players = steel_posibility(player_id, game);
+    match players.as_slice() {
+        [] => {
+            unsafe { state.as_mut().expect("") }.mutate(|data| {
+                data.game.set_thief_state(Thief::None);
+            });
+            None
+        }
+        [(pid, _)] => {
+            unsafe { state.as_mut().expect("") }.mutate(|data| {
+                data.game.steal(*pid, player_id);
+                data.game.set_thief_state(Thief::None);
+            });
+            None
+        }
+        [_, _, ..] => Some(VecHStack::new(
             players
-                .iter()
-                .map(|&(player, pname)| {
+                .into_iter()
+                .map(|(player, pname)| {
                     Box::new(CenterV::new(Button::new(pname, state, move |data| {
                         data.game.steal(player, player_id);
                         data.game.set_thief_state(Thief::None);
                     }))) as Box<dyn Drawable>
                 })
                 .collect(),
-        ))
+        )),
     }
 }
 

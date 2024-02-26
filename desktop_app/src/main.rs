@@ -81,7 +81,13 @@ impl DrawableState<WindowReturn> for Window {
         }
     }
     fn gen_draw(state: &mut State<Self, WindowReturn>) -> WindowReturn {
-        state.draw_sub(|state, data| match &mut data.page {
+        unsafe { state.draw_sub_state(Window::draw_sub) }
+    }
+}
+
+impl Window {
+    fn draw_sub(state: *mut State<Window, WindowReturn>, data: &mut Window) -> WindowReturn {
+        match &mut data.page {
             Page::Main(data) => {
                 Wrapper::new(page::main::main(data, unsafe { state.as_mut().expect("") }))
             }
@@ -96,7 +102,7 @@ impl DrawableState<WindowReturn> for Window {
                 }),
                 RefWrapper::new(gamedata),
             ]),
-        })
+        }
     }
 }
 

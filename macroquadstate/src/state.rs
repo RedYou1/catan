@@ -34,8 +34,11 @@ impl<K: DrawableState<V>, V: Drawable> State<K, V> {
         self.to_redraw = true;
     }
 
+    /// # Safety
+    /// You shouldn't modify the data.
+    /// Only use it to have a mutable reference to a Sub State.
     #[profiling::function]
-    pub fn draw_sub<Sub: Drawable, Func: Fn(*mut Self, &mut K) -> Sub>(
+    pub unsafe fn draw_sub_state<Sub: Drawable, Func: Fn(*mut Self, &mut K) -> Sub>(
         &mut self,
         func: Func,
     ) -> Sub {
