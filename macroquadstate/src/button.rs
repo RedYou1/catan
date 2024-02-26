@@ -47,25 +47,30 @@ impl<'a, Data: DrawableState<DataReturn>, DataReturn: Drawable, Func: Fn(&mut Da
     for Button<'a, Data, DataReturn, Func>
 {
     fn width(&self) -> Range {
-        let center = get_text_center(self.text, None, 15, 1.0, 0.0);
-        let x = center.x * 2.0 + 11.0;
-        Range {
-            min: x,
-            max: Some(x),
+        if self.text.is_empty() {
+            Range {
+                min: 4.0,
+                max: Some(4.0),
+            }
+        } else {
+            let center = get_text_center(self.text, None, 15, 1.0, 0.0);
+            let x = center.x * 2.13 + 4.0;
+            Range {
+                min: x,
+                max: Some(x),
+            }
         }
     }
 
     fn height(&self) -> Range {
-        let center = get_text_center(self.text, None, 15, 1.0, 0.0);
-        let y = center.y * -2.0 + 18.0;
         Range {
-            min: y,
-            max: Some(y),
+            min: 20.0,
+            max: Some(20.0),
         }
     }
 
     fn draw(&mut self, x: f32, y: f32, _: f32, _: f32) -> Result<(), ()> {
-        if root_ui().button(Vec2 { x, y: y + 2.0 }, self.text) {
+        if root_ui().button(Vec2 { x, y }, self.text) {
             unsafe {
                 self.state
                     .as_mut()

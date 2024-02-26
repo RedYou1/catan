@@ -91,25 +91,34 @@ pub fn game(state: &mut State<Data, DataReturn>) -> VStack<4> {
                 }
             }
             (2, a, b) => Box::new(CenterH::new(vstack![
-                CenterH::new(FixText::new(format!("{a} {b}"), 25, WHITE)),
-                CenterH::new(Button::new("Next", state, |data| {
-                    data.game.next_player();
-                    data.dices = None;
-                }))
+                CenterH::new(Margin::news(
+                    FixText::new(format!("{a} {b}"), 25, WHITE),
+                    5.0
+                )),
+                CenterH::new(Margin::news(
+                    Button::new("Next", state, |data| {
+                        data.game.next_player();
+                        data.dices = None;
+                    }),
+                    5.0
+                ))
             ])),
-            (3, _, _) => Box::new(CenterH::new(Button::new("Dice", state, |data| {
-                let (a, b) = data.game.throw_dice();
-                data.dices = Some((a, b));
-                data.game.set_thief_state(if a + b == 7 {
-                    Thief::Waiting
-                } else {
-                    Thief::None
-                });
-                if a + b == 7 {
-                    data.to_reduce = RessourceManager::default();
-                    data.page = GamePage::Reduce;
-                }
-            }))),
+            (3, _, _) => Box::new(CenterH::new(Margin::news(
+                Button::new("Dice", state, |data| {
+                    let (a, b) = data.game.throw_dice();
+                    data.dices = Some((a, b));
+                    data.game.set_thief_state(if a + b == 7 {
+                        Thief::Waiting
+                    } else {
+                        Thief::None
+                    });
+                    if a + b == 7 {
+                        data.to_reduce = RessourceManager::default();
+                        data.page = GamePage::Reduce;
+                    }
+                }),
+                10.0,
+            ))),
             _ => Box::new(Empty::new()),
         },
     ])
@@ -158,10 +167,13 @@ pub fn choose_steal(state: *mut State<Data, DataReturn>) -> Option<VecHStack> {
             players
                 .into_iter()
                 .map(|(player, pname)| {
-                    Box::new(CenterV::new(Button::new(pname, state, move |data| {
-                        data.game.steal(player, player_id);
-                        data.game.set_thief_state(Thief::None);
-                    }))) as Box<dyn Drawable>
+                    Box::new(CenterV::new(Margin::news(
+                        Button::new(pname, state, move |data| {
+                            data.game.steal(player, player_id);
+                            data.game.set_thief_state(Thief::None);
+                        }),
+                        10.0,
+                    ))) as Box<dyn Drawable>
                 })
                 .collect(),
         )),
