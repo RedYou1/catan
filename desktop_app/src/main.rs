@@ -9,6 +9,8 @@ use macroquadstate::state::{DrawableState, State};
 use macroquadstate::v_stack::VStack;
 use macroquadstate::vstack;
 use macroquadstate::wrapper::{RefWrapper, Wrapper};
+use std::thread::sleep;
+use std::time::Duration;
 
 mod data;
 mod draw;
@@ -16,6 +18,7 @@ mod page;
 mod player;
 
 pub const HEX_SIZE: f32 = 50.0;
+const FPS_IN_MILLIS: u64 = 1000 / 20;
 
 fn configure_window() -> Conf {
     Conf {
@@ -117,10 +120,18 @@ async fn main() {
     let mut state = State::new(Window {
         page: Page::Main(MainData { player_number: 4 }),
     });
+
     loop {
+        let start = std::time::Instant::now();
         clear_background(DARKGRAY);
 
         let _ = state.draw(0.0, 0.0, screen_width(), screen_height());
+
+        #[allow(clippy::cast_possible_truncation)]
+        let duration = start.elapsed().as_millis() as u64;
+        if duration < FPS_IN_MILLIS {
+            sleep(Duration::from_millis(FPS_IN_MILLIS - duration));
+        }
 
         next_frame().await;
         profiling::finish_frame!();

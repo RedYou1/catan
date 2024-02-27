@@ -24,6 +24,10 @@ impl<K: DrawableState<V>, V: Drawable> State<K, V> {
         }
     }
 
+    pub const fn need_redraw(&self) -> bool {
+        self.to_redraw
+    }
+
     pub const fn data(&self) -> &K {
         &self.data
     }
