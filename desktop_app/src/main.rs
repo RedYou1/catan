@@ -5,10 +5,10 @@ use macroquad::prelude::*;
 use macroquadstate::button::Button;
 use macroquadstate::drawable::Drawable;
 use macroquadstate::range::Range;
-use macroquadstate::state::{DrawableState, State};
+use macroquadstate::state::{DrawableState, State, SubState};
 use macroquadstate::v_stack::VStack;
 use macroquadstate::vstack;
-use macroquadstate::wrapper::{RefWrapper, Wrapper};
+use macroquadstate::wrapper::Wrapper;
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -35,7 +35,7 @@ pub struct MainData {
 #[allow(clippy::large_enum_variant)]
 pub enum Page {
     Main(MainData),
-    Game(State<Data, DataReturn>),
+    Game(SubState<Data, DataReturn>),
 }
 
 #[allow(clippy::missing_panics_doc, clippy::match_wildcard_for_single_variants)]
@@ -52,7 +52,7 @@ impl Page {
             _ => panic!("unwrap main"),
         }
     }
-    pub fn unwrap_game(&mut self) -> &mut State<Data, DataReturn> {
+    pub fn unwrap_game(&mut self) -> &mut SubState<Data, DataReturn> {
         match self {
             Page::Game(data) => data,
             _ => panic!("unwrap game"),
@@ -84,27 +84,22 @@ impl DrawableState<WindowReturn> for Window {
         }
     }
     fn gen_draw(state: &mut State<Self, WindowReturn>) -> WindowReturn {
-        unsafe { state.draw_sub_state(Window::draw_sub) }
-    }
-}
-
-impl Window {
-    fn draw_sub(state: *mut State<Window, WindowReturn>, data: &mut Window) -> WindowReturn {
-        match &mut data.page {
-            Page::Main(data) => {
-                Wrapper::new(page::main::main(data, unsafe { state.as_mut().expect("") }))
+        match &state.as_ref().page {
+            Page::Main(data) => Wrapper::new(page::main::main(data.player_number, state)),
+            Page::Game(gamedata) => {
+                let content = gamedata.draw();
+                Wrapper::new(vstack![
+                    Button::new_stop("Retour", state, |data| {
+                        data.page = Page::Main(MainData {
+                            player_number: match &data.page {
+                                Page::Game(gamedata) => gamedata.as_ref().data().game.players_len(),
+                                Page::Main(data) => data.player_number,
+                            },
+                        });
+                    }),
+                    content,
+                ])
             }
-            Page::Game(gamedata) => Wrapper::new(vstack![
-                Button::new_stop("Retour", state, |data| {
-                    data.page = Page::Main(MainData {
-                        player_number: match &data.page {
-                            Page::Game(gamedata) => gamedata.data().game.players_len(),
-                            Page::Main(data) => data.player_number,
-                        },
-                    });
-                }),
-                RefWrapper::new(gamedata),
-            ]),
         }
     }
 }

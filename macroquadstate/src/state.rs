@@ -1,4 +1,6 @@
-use crate::{drawable::Drawable, range::Range};
+use std::ptr::addr_of;
+
+use crate::{drawable::Drawable, range::Range, wrapper::RefWrapper};
 
 pub trait DrawableState<T: Drawable>
 where
@@ -37,17 +39,6 @@ impl<K: DrawableState<V>, V: Drawable> State<K, V> {
         func(&mut self.data);
         self.to_redraw = true;
     }
-
-    /// # Safety
-    /// You shouldn't modify the data.
-    /// Only use it to have a mutable reference to a Sub State.
-    #[profiling::function]
-    pub unsafe fn draw_sub_state<Sub: Drawable, Func: Fn(*mut Self, &mut K) -> Sub>(
-        &mut self,
-        func: Func,
-    ) -> Sub {
-        func(self, &mut self.data)
-    }
 }
 
 #[profiling::all_functions]
@@ -69,5 +60,39 @@ impl<K: DrawableState<V>, V: Drawable> Drawable for State<K, V> {
             .as_mut()
             .expect("can't draw state")
             .draw(x, y, width, height)
+    }
+}
+
+impl<K: DrawableState<V>, V: Drawable> AsRef<K> for State<K, V> {
+    fn as_ref(&self) -> &K {
+        &self.data
+    }
+}
+
+pub struct SubState<K: DrawableState<V> + 'static, V: Drawable + 'static> {
+    state: State<K, V>,
+}
+
+impl<K: DrawableState<V> + 'static, V: Drawable + 'static> SubState<K, V> {
+    pub const fn new(data: K) -> Self {
+        Self {
+            state: State::new(data),
+        }
+    }
+
+    pub fn draw(&self) -> RefWrapper {
+        RefWrapper::new(addr_of!(self.state).cast_mut())
+    }
+}
+
+impl<K: DrawableState<V> + 'static, V: Drawable + 'static> AsRef<State<K, V>> for SubState<K, V> {
+    fn as_ref(&self) -> &State<K, V> {
+        &self.state
+    }
+}
+
+impl<K: DrawableState<V> + 'static, V: Drawable + 'static> AsMut<State<K, V>> for SubState<K, V> {
+    fn as_mut(&mut self) -> &mut State<K, V> {
+        &mut self.state
     }
 }

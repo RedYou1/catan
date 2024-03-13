@@ -5,17 +5,17 @@ use macroquadstate::{
     fix_text::FixText,
     margin::Margin,
     space::Space,
-    state::State,
+    state::{State, SubState},
     v_stack::VStack,
     vstack,
     wrapper::Wrapper,
 };
 
-use crate::{data::Data, MainData, Page, Window, WindowReturn};
+use crate::{data::Data, Page, Window, WindowReturn};
 
-pub fn main(data: &MainData, state: &mut State<Window, WindowReturn>) -> CenterV<VStack<4>> {
+pub fn main(player_number: u8, state: &mut State<Window, WindowReturn>) -> CenterV<VStack<4>> {
     CenterV::new(vstack![
-        if data.player_number < 8 {
+        if player_number < 8 {
             Wrapper::new(CenterH::new(Margin::news(
                 Button::new("+", state, |data| {
                     data.page.unwrap_main_mut().player_number += 1;
@@ -26,10 +26,10 @@ pub fn main(data: &MainData, state: &mut State<Window, WindowReturn>) -> CenterV
             Wrapper::new(Space::new(0.0, 15.0))
         },
         CenterH::new(Margin::news(
-            FixText::new(format!("{}", data.player_number), 25, WHITE),
+            FixText::new(player_number.to_string(), 25, WHITE),
             5.0
         )),
-        if data.player_number > 2 {
+        if player_number > 2 {
             Wrapper::new(CenterH::new(Margin::news(
                 Button::new("-", state, |data| {
                     data.page.unwrap_main_mut().player_number -= 1;
@@ -41,8 +41,9 @@ pub fn main(data: &MainData, state: &mut State<Window, WindowReturn>) -> CenterV
         },
         CenterH::new(Margin::news(
             Button::new("PLAY", state, |data| {
-                data.page =
-                    Page::Game(State::new(Data::new(data.page.unwrap_main().player_number)));
+                data.page = Page::Game(SubState::new(Data::new(
+                    data.page.unwrap_main().player_number,
+                )));
             }),
             5.0
         ))
